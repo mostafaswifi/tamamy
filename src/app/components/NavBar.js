@@ -18,14 +18,14 @@ const NavBar = () => {
       <div className="d-flex flex-column justify-content-center align-items-center navbar-brand" style={{fontSize: '1rem',fontFamily: 'cairo'}}>
         <b className="text-muted" >  مديرية التربية و التعليم بالشرقية</b>
         <b className="text-muted" >    إدارة العاشر من رمضان التعليمية </b>
-      <b className="" >نظام تسجيل حضور السادة الموجهين</b>
+      <b className="text-muted" >نظام تسجيل حضور السادة الموجهين</b>
        </div> 
       <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
         <span className="navbar-toggler-icon"></span>
       </button>
       <div className="offcanvas offcanvas-end m-0" tabIndex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
         <div className="offcanvas-header">
-          <h5 className="offcanvas-title" id="offcanvasNavbarLabel">Offcanvas</h5>
+          <h5 className="offcanvas-title" id="offcanvasNavbarLabel"></h5>
           <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div className="offcanvas-body">

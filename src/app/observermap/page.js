@@ -76,14 +76,14 @@ marker.togglePopup();
   return (
     <div className='container-fluid  d-flex flex-column ' style={{height: '100vh'}}>
 
-  <input type="password" className='form-control my-3' placeholder='Enter Admin Password' onChange={(e)=>setAdmin(e.target.value)} style={{display: admin === adminPassword ? 'none!' : 'block'}}/>
+  <input type="password" className={admin !== adminPassword ? 'form-control my-3' : 'd-none'} placeholder='Enter Admin Password' onChange={(e)=>setAdmin(e.target.value)} style={{display: admin === adminPassword ? 'none!' : 'block'}}/>
     
  
     
   
     
-  
-    <input type="search" className='form-control my-3' placeholder='Search Employee' />
+   
+    <input type="search" className={admin === adminPassword ? 'd-block form-control my-3' : 'd-none'}  placeholder='Search Employee' />
         <div id="map" className={admin === adminPassword ? 'd-block position-relative h-100' : 'd-none'}  />
 
     

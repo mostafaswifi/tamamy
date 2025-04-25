@@ -74,19 +74,21 @@ marker.togglePopup();
   },[user]);
 
   return (
-    <>
-  <div className='container'>
+    <div className='container-fluid  d-flex flex-column ' style={{height: '100vh'}}>
+
   <input type="password" className='form-control my-3' placeholder='Enter Admin Password' onChange={(e)=>setAdmin(e.target.value)} style={{display: admin === adminPassword ? 'none!' : 'block'}}/>
     
-  </div>
+ 
     
   
-    <div  className='w-100 h-100 d-flex flex-column justify-content-center align-items-center' style={{display: admin === adminPassword ? 'block' : 'none!important'}}>
+    
+  
     <input type="search" className='form-control my-3' placeholder='Search Employee' />
-        <div id="map" className='mt-5 mx-5'  style={{width:'100%',height:'800px'}} />
-    </div>
+        <div id="map" className={admin === adminPassword ? 'd-block position-relative h-100' : 'd-none'}  />
 
-    </>
+    
+
+    </div>
   );
 };
 

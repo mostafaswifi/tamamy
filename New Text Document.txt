@@ -1,0 +1,11 @@
+useEffect(  () => {
+
+
+      setEmployeeData({ employeeId:params.signedInInfo[1], cordy: params.signedInInfo[2],cordx: params.signedInInfo[3]})
+      addSignature({...employeeData})
+ 
+        
+ 
+   
+      
+},[employeeData, params.signedInInfo])

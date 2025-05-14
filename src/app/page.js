@@ -4,7 +4,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useLocationDateTimeStore } from '../store/store.js';
+import {useGeolocated} from "react-geolocated";
+import {format} from 'date-fns';
 import MySwiper from "./components/swipper";
+import employeeLogIn from "../lib/emloyeeLogIn";
+
+
 import sign from '../../public/sign.jpg'
 import erp1 from '../../public/erp1.jpg'
 import erp2 from '../../public/erp2.jpg'
@@ -13,10 +19,21 @@ import erp4 from '../../public/erp4.jpg'
 import erp5 from '../../public/erp5.jpg'
 
 
-import employeeLogIn from "../lib/emloyeeLogIn";
+
+export default function Home() {
+
+  const now = new Date();
+let dateTimeSignature = format(now, 'dd/MM/yyyy HH:mm:ss');
+  const {location, setLocation, dateTime, setDateTime} = useLocationDateTimeStore();
+
+    const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated();
+  
+    const [isClient, setIsClient] = useState(false)
+
+
+
 
 const images = [erp1, erp2, erp3, erp4, erp5]
-export default function Home() {
 
   let router = useRouter()
 
@@ -33,15 +50,21 @@ export default function Home() {
      
     let userData = await employeeLogIn()
      setUser(userData)
-     setLoggedUser( user.filter((user)=>user.employeeName.toLowerCase().toString() === logIn.username.toLowerCase().toString() && user.employeeCode === logIn.password.toLowerCase().toString()))
+     setLoggedUser( user.filter((user)=>user.employeeName?.toLowerCase().toString() === logIn.username.toLowerCase().toString() && user.employeeCode === logIn.password.toLowerCase().toString()))
     }
     data()
-  }, [logIn.password, logIn.username, user]);
+
+
+
+    setIsClient(true)
+    setLocation(coords?.latitude, coords?.longitude)
+    setDateTime(dateTimeSignature)
+  }, [logIn.password, logIn.username, user,coords, dateTime,dateTimeSignature,setDateTime,setLocation,loggedUser]);
 
   
   let logInFunction = (e) => {
     e.preventDefault()
-    !logIn.username || !logIn.password ? alert('خطأ في اسم المستخدم أو كلمة المرور') : loggedUser[0]? router.replace(`/signedInInfo/${loggedUser[0].id}`) :  router.replace(`/`)
+    !logIn.username || !logIn.password ? alert('خطأ في اسم المستخدم أو كلمة المرور') : loggedUser[0]? router.replace(`/signedInInfo/${loggedUser[0].id}/${coords?.latitude}/${coords?.longitude}`) :  router.replace(`/`)
 
     setLogIn({
         username: "",
@@ -81,6 +104,8 @@ export default function Home() {
      
     </div>
      </div>
+     {coords && coords.latitude }
+      {coords && coords.longitude }
     </>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect , useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import userLogIn from "../../lib/userLogIn";
+import { Suspense } from 'react';
 
 
 
@@ -29,7 +30,7 @@ const MapComponent = () => {
     // Initialize the map when component mounts
     const map = new maplibregl.Map({
       container: 'map', // container ID
-      style: 'https://api.maptiler.com/maps/streets/style.json?key=HGPSwzDQY26yZCdA2ptF', // style URL
+      style: 'https://api.maptiler.com/maps/outdoor-v2/style.json?key=HGPSwzDQY26yZCdA2ptF', // style URL
       center: [31.738187639095166,30.29199231869582], // starting position [lng, lat]
       zoom: 9 // starting zoom
     //   30.29199231869582, 31.738187639095166
@@ -43,7 +44,7 @@ markers.map((mark)=>{
   .setPopup(
     new maplibregl.Popup() // add popup to marker
       .setHTML(`<b>${mark.employee.employeeName}</b>
-       <div class='text-danger'>${mark.attendanceTime}</div>
+       <div class='text-danger'>${mark.createdAt}</div>
        <div class='text-success'>${mark.departureTime}</div>
        `).trackPointer(true)
   )
@@ -84,7 +85,10 @@ marker.togglePopup();
     
    
     <input type="search" className={admin === adminPassword ? 'd-block form-control my-3' : 'd-none'}  placeholder='Search Employee' />
+
+      <Suspense fallback={<div className='d-flex justify-content-center align-items-center' style={{height: '100vh'}}><h1>Loading...</h1></div>}>
         <div id="map" className={admin === adminPassword ? 'd-block position-relative h-100' : 'd-none'}  />
+    </Suspense>
 
     
 

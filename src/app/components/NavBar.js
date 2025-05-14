@@ -12,12 +12,13 @@ const NavBar = () => {
          import('../../../node_modules/bootstrap/js/dist/offcanvas')
     
     }, [])
+
   return (
     <nav className="navbar bg-body-tertiary sticky-top" dir="rtl">
     <div className="container-fluid">
       <div className="d-flex flex-column justify-content-center align-items-center navbar-brand" style={{fontSize: '1rem',fontFamily: 'cairo'}}>
-        <b className="text-muted" >  مديرية التربية و التعليم بالشرقية</b>
-        <b className="text-muted" >    إدارة العاشر من رمضان التعليمية </b>
+        <b className="text-muted" >مديرية التربية و التعليم بالشرقية</b>
+        <b className="text-muted" >إدارة العاشر من رمضان التعليمية </b>
       <b className="text-muted" >نظام تسجيل حضور السادة الموجهين</b>
        </div> 
       <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
@@ -31,15 +32,20 @@ const NavBar = () => {
         <div className="offcanvas-body">
           <ul className="navbar-nav justify-content-end flex-grow-1 pe-3">
             <li className="nav-item">
-              <Link className="nav-link active" aria-current="page" href="/observermap">observer</Link>
+              <Link className="nav-link active" aria-current="page" href="/observermap">دخول مراقب</Link>
             </li>
             <li className="nav-item">
               <Link className="nav-link" href="/signature">signature</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" href="/">الرئيسية</Link>
+              <Link className="nav-link" href="/">تسجيل حضور موجه</Link>
             </li>
-           
+            <li className="nav-item">
+              <Link className="nav-link" href="/plane">إضافة مدرسة جديدة</Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" href="/addEmploye">إضافة موجه جديد</Link>
+            </li>
           </ul>
           <form className="d-flex mt-3" role="search">
             <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />

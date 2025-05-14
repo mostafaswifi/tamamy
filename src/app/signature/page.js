@@ -6,10 +6,6 @@ import { useLocationDateTimeStore } from '../../store/store.js';
 
 const now = new Date();
 
-// console.log(format(now, 'PPPP')); // "Thursday, October 5th, 2023"
-
-
-
 
 const Signature = () => {
 let dateTimeSignature = format(now, 'dd/MM/yyyy HH:mm:ss');
@@ -28,13 +24,8 @@ let dateTimeSignature = format(now, 'dd/MM/yyyy HH:mm:ss');
 
   return (
     <div>
-      {/* {location.lat}
-      {location.lng} */}
-    {/* {coords?.latitude}
-    <br />
-    {coords?.longitude}
-   <br />
-   {isClient && dateTime} */}
+      
+   
    {location.lat}
    <br />
    {location.lng}

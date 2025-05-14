@@ -3,21 +3,40 @@ import React , {useEffect,useState} from 'react'
 import signedIn from '../../../public/loggedIn.jpg'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-
+import addSignature from '@/lib/addSignature'
 import employeeLogIn from '@/lib/emloyeeLogIn'
 const SignedInInfo = () => {
-  let [employe, setEmploye] = useState([])
   const params = useParams()
+  const [employe, setEmploye] = useState([])
+  const [employeeData, setEmployeeData] = useState({
+    employeeId: "",
+    cordx: "",
+    cordy: ""
+  })
   
   useEffect(()=>{
-    let data = async () => {
+    const data = async () => {
       const employee = await employeeLogIn()
-      setEmploye(employee.find(e => e.id.toString() === params.signedInInfo[1]))
-      console.log(employe)
+     setEmploye(await employee.find(e => e.id.toString() === params.signedInInfo[1]))
+      // console.log(employeeData)
+      if (params.signedInInfo[1]) {
+        setEmployeeData({ employeeId:params.signedInInfo[1], cordx: params.signedInInfo[3],cordy: params.signedInInfo[2]})
+      }
+      // console.log({...employeeData})
     }
     data()
-  },[employe, params.signedInInfo])
+    
+    // console.log(params.signedInInfo[1], params.signedInInfo[2], params.signedInInfo[3])
+    // console.log(employeeData)
 
+    
+  },[params.signedInInfo])
+
+  useEffect(()=>{
+
+    employeeData? addSignature({...employeeData}) : null
+
+  },[employeeData])
 
   return (
     <div className='container mt-5 d-flex justify-content-center align-items-center'>

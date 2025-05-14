@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@turf/turf": "^7.2.0",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.5",
     "cors": "^2.8.5",
@@ -21,6 +22,7 @@
     "react-leaflet": "^5.0.0-rc.2",
     "react-map-gl": "^8.0.4",
     "react-swiper": "^0.1.5",
+    "sweetalert2": "^11.21.0",
     "swiper": "^11.2.6",
     "zustand": "^5.0.3"
   },

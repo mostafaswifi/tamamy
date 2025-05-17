@@ -9,22 +9,7 @@ const admin = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
 
 
 
-const addEmployeeHandler = async (e, employee) => {
-  e.preventDefault();
-  await addEmployee(
-    employee?.employeeName,
-    employee?.employeeCode,
-    employee?.hireDate,
-    employee?.department,
-    employee?.jobTitle
-  );
-  Swal.fire({
-    icon: "success",
-    title: "تم إضافة الموجه بنجاح",
-    showConfirmButton: false,
-    timer: 1500,
-  });
-};
+
 
 const addEmploye = () => {
   const [password, setPassword] = useState("");
@@ -36,6 +21,34 @@ const addEmploye = () => {
     jobTitle: "",
   });
 
+const addEmployeeHandler = async (e, employee) => {
+  e.preventDefault();
+  await addEmployee(
+    employee?.employeeName,
+    employee?.employeeCode,
+    employee?.hireDate,
+    employee?.department,
+    employee?.jobTitle
+  );
+ 
+
+  setEmployee({
+    ...employee,
+    employeeName: "",
+    employeeCode: "",
+    hireDate: "",
+    department: "",
+    jobTitle: "",
+  });
+
+  Swal.fire({
+    icon: "success",
+    title: "تم إضافة الموجه بنجاح",
+    showConfirmButton: true,
+    timer: 1500,
+  });
+
+};
 
 const router = useRouter();
 const routHandler = (e) => {
@@ -60,6 +73,7 @@ const routHandler = (e) => {
             className="mb-3 form-control"
             type="text"
             placeholder="اسم الموجه"
+            value={employee.employeeName}
             onChange={(e) =>
               setEmployee({ ...employee, employeeName: e.target.value })
             }
@@ -68,6 +82,7 @@ const routHandler = (e) => {
             className="mb-3 form-control"
             type="text"
             placeholder="كلمة المرور"
+            value={employee.employeeCode}
             onChange={(e) =>
               setEmployee({ ...employee, employeeCode: e.target.value })
             }
@@ -84,6 +99,7 @@ const routHandler = (e) => {
             className="mb-3 form-control"
             type="text"
             placeholder="المادة"
+            value={employee.department}
             onChange={(e) =>
               setEmployee({ ...employee, department: e.target.value })
             }
@@ -92,6 +108,7 @@ const routHandler = (e) => {
             className="mb-3 form-control"
             type="text"
             placeholder="موجه أول / موجه"
+            value={employee.jobTitle}
             onChange={(e) =>
               setEmployee({ ...employee, jobTitle: e.target.value })
             }
@@ -104,7 +121,7 @@ const routHandler = (e) => {
               إضافة موجه
             </button>
             <button className="btn btn-primary" onClick={(e)=>routHandler(e)}>تعديل بيانات موجه</button>
-            <button className="btn btn-primary">حذف موجه</button>
+          
           </div>
         </form>
       )}

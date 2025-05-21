@@ -1,9 +1,15 @@
 'use client'
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useState, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import handleExcelDownload from '../../lib/apiToExcel';
+
 import userLogIn from "../../lib/userLogIn";
-import { set } from 'date-fns';
+
+
+const userLogInDataExcel = process.env.NEXT_PUBLIC_API_URL + '/attendance';
+const employeeLogInDataExcel = process.env.NEXT_PUBLIC_API_URL + '/employees';
+
 
 const MapComponent = () => {
   const adminPassword = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
@@ -49,6 +55,18 @@ const MapComponent = () => {
     // Add markers with popups
     user.forEach(mark => {
       if (!mark.cordx || !mark.cordy) return;
+const myTime = new Date(mark.updatedAt);
+const cairoTime = myTime.toLocaleString('en-EG', {
+  timeZone: 'Africa/Cairo',
+  hour12: true,  // Use 12-hour format
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric'
+});
+const cairoTime12hr = cairoTime.replace('AM', 'صباحا').replace('PM', 'مساءا');
 
       const marker = new maplibregl.Marker()
         .setLngLat([mark.cordx, mark.cordy])
@@ -58,6 +76,7 @@ const MapComponent = () => {
               <b>${mark.employee?.employeeName || 'Unknown'}</b>
               <div class='text-danger'>${mark.updatedAt?.substring(-1, 10) || 'No date'}</div>
               <div class='text-success'>${mark.updatedAt?.slice(-13) || 'No time'}</div>
+              <div class='text-success'>${cairoTime12hr || 'No time'}</div>
             `)
             .trackPointer(true)
         )
@@ -82,7 +101,9 @@ const MapComponent = () => {
     );
   }
 
-  const getSingleUser = (id) => {
+  const getSingleUser = async (e) => {
+    e.preventDefault();
+    const id = Number(e.target.value);
     const myUser = user.find(user => user.id === id);
     if (myUser) {
       mapRef.current.flyTo({
@@ -90,6 +111,9 @@ const MapComponent = () => {
         zoom: 15,
         essential: true
       });
+    } else {
+      const users = await userLogIn();
+      setUser(users);
     }
   }
 
@@ -104,16 +128,11 @@ const MapComponent = () => {
       />
 
 <div className='d-flex justify-content-center align-items-center'>
-  <button
-        className={admin === adminPassword ? 'btn btn-primary my-3 mx-2' : 'd-none'}
-        onClick={ async () => {
-          const userData = await userLogIn();
-          setUser(userData);
-        }}
-      >  عرض الكل </button>
+ 
         <input
         type="search"
-        className={admin === adminPassword ? 'd-block form-control my-3 w-50' : 'd-none'}
+        className={admin === adminPassword ? 'd-block form-control my-5' : 'd-none'}
+        style={{ direction: 'rtl'}}
         placeholder='ابحث عن موظف'
         onChange={(e) => {
           const searchValue = e.target.value.toLowerCase();
@@ -126,24 +145,44 @@ const MapComponent = () => {
 
       <div className='row h-100'>
         {admin === adminPassword && (
-          <div className='position-relative h-100 col-2'>
-            <select className='form-select' onChange={(e) => getSingleUser(Number(e.target.value))}>
+          <div className='d-flex align-items-start position-relative  col-3' style={{maxHeight: 'fit-content!important'}}>
+             <button
+        className={admin === adminPassword ? 'btn btn-primary  ms-2 text-nowrap' : 'd-none'}
+        onClick={ async () => {
+          const userData = await userLogIn();
+          setUser(userData);
+        }}
+      >  عرض الكل </button>
+            <select className='form-select' onChange={(e) => getSingleUser(e)}>
               <option value="">اختر موظف</option>
               {user.map((user) => (
                 <option key={user.id} value={user.id}>{user.employee?.employeeName}</option>
               ))}
             </select>
-            {/* {user.map((user) => (
-
-              <div key={user.id}><button className='btn btn-primary w-100 my-1' onClick={() => {getSingleUser(user.id)}}>الأستاذ / {user.employee?.employeeName}</button><label>{user?.updatedAt}</label></div>
-            ))} */}
+       
           </div>
         )}
         
         <div
           id="map"
-          className={admin === adminPassword ? 'd-block position-relative h-75 col-10 overflow-hidden' : 'd-none'}
+          className={admin === adminPassword ? 'd-block position-relative h-75 col-9 overflow-hidden' : 'd-none'}
         />
+      <div className='d-flex justify-content-center align-items-center'>
+        <button
+          className={admin === adminPassword ? 'btn btn-danger  ms-2 text-nowrap' : 'd-none'}
+          onClick={ async () => {
+handleExcelDownload(userLogInDataExcel, 'userLogInData.xlsx');          
+          }}
+        >   تصدير ملف تسجيل الحضور </button>
+
+         <button
+          className={admin === adminPassword ? 'btn btn-success  ms-2 text-nowrap' : 'd-none'}
+          onClick={ async () => {
+handleExcelDownload(employeeLogInDataExcel, 'employeeLogInData.xlsx');          
+          }}
+        >   تصدير ملف تسجيل موظف </button>
+        
+        </div>
       </div>
     </div>
   );

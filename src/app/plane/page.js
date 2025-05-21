@@ -150,7 +150,11 @@ useEffect(() => {
         <button type="submit" className="btn btn-primary my-3" >
 إضافة مدرسة
         </button>
+      <button className="btn btn-danger ms-3" onClick={() => setFlag(false)}>إلغاء</button>
       </form>
+    
+      
+      
       </main>)}
     </div>
   );

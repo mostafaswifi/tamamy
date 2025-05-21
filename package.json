@@ -24,6 +24,7 @@
     "react-swiper": "^0.1.5",
     "sweetalert2": "^11.21.0",
     "swiper": "^11.2.6",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

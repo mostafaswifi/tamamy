@@ -50,6 +50,12 @@ const allEmployees = () => {
 
   modifyEmployee, id
   );
+  Swal.fire({
+    icon: "success",
+    title: "تم تعديل الموجه بنجاح",
+    showConfirmButton: false,
+    timer: 1500,
+  });
 }
 
   

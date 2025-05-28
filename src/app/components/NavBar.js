@@ -35,9 +35,6 @@ const NavBar = () => {
               <Link className="nav-link active" aria-current="page" href="/observermap">دخول مراقب</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" href="/signature">signature</Link>
-            </li>
-            <li className="nav-item">
               <Link className="nav-link" href="/">تسجيل حضور موجه</Link>
             </li>
             <li className="nav-item">

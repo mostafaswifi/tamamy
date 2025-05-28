@@ -103,8 +103,33 @@ const images = [erp1, erp2, erp3, erp4, erp5]
     </div>
 
      </div>
-     {coords && coords.latitude }
-      {coords && coords.longitude }
+    <div className="container">
+      <div className="row">
+        <div className="col-lg-12 d-flex justify-content-center align-items-center">
+          <h2>نظام تسجيل حضور السادة الموجهين</h2>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-lg-12 d-flex justify-content-center align-items-center">
+          <p>يجب على الموجه تسجيل حضوره في المدرسة التي يتواجد بها، وذلك من خلال إدخال اسم المستخدم وكلمة المرور الخاصة به.</p>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-lg-12 d-flex justify-content-center align-items-center">
+          <p>يتم تسجيل الحضور من خلال تحديد الموقع الجغرافي للموجه وتاريخ ووقت تسجيل الحضور.</p>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-lg-12 d-flex justify-content-center align-items-center">
+          <p>يجب على الموجه التأكد من صحة البيانات المدخلة قبل تسجيل الحضور.</p>
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-lg-12 d-flex justify-content-center align-items-center">
+          <p>في حالة وجود أي مشكلة في تسجيل الحضور، يمكن للموجه التواصل مع إدارة التعليم للحصول على المساعدة.</p>
+        </div>
+      </div>
+    </div>
     </>
   );
 }

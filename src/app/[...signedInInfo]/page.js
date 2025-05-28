@@ -1,10 +1,11 @@
 'use client'
 import React , {useEffect,useState} from 'react'
-import signedIn from '../../../public/loggedIn.jpg'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
+import {useGeolocated} from "react-geolocated";
 import addSignature from '@/lib/addSignature'
 import employeeLogIn from '@/lib/emloyeeLogIn'
+import signedIn from '../../../public/loggedIn.jpg'
 const SignedInInfo = () => {
   const params = useParams()
   const [employe, setEmploye] = useState([])
@@ -13,7 +14,7 @@ const SignedInInfo = () => {
     cordx: "",
     cordy: ""
   })
-  
+  const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated();
   useEffect(()=>{
     const data = async () => {
       const employee = await employeeLogIn()
@@ -21,6 +22,9 @@ const SignedInInfo = () => {
       // console.log(employeeData)
       if (params.signedInInfo[1]) {
         setEmployeeData({ employeeId:params.signedInInfo[1], cordx: params.signedInInfo[3],cordy: params.signedInInfo[2]})
+      }
+      if (!params.signedInInfo[2] || !params.signedInInfo[3]) {
+        setEmployeeData({ employeeId:params.signedInInfo[1], cordx: coords?.longitude,cordy: coords?.latitude})
       }
       // console.log({...employeeData})
     }
@@ -30,7 +34,7 @@ const SignedInInfo = () => {
     // console.log(employeeData)
 
     
-  },[params.signedInInfo])
+  },[params.signedInInfo,coords])
 
   useEffect(()=>{
 

@@ -2,14 +2,37 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useState, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
+import axios from 'axios';
 import handleExcelDownload from '../../lib/apiToExcel';
 
 import userLogIn from "../../lib/userLogIn";
+import Swal from 'sweetalert2';
 
 
 const userLogInDataExcel = process.env.NEXT_PUBLIC_API_URL + '/attendance';
 const employeeLogInDataExcel = process.env.NEXT_PUBLIC_API_URL + '/employees';
-
+const deleteAllAttendanceRecords = async () => {
+  const URL_BASE = process.env.NEXT_PUBLIC_API_URL;
+  try {
+    await axios.delete(`${URL_BASE}/attendance`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer your_token", // If needed
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting employee:", error);
+  }
+  Swal.fire({
+    icon: 'success',
+    title: 'تم حذف جميع سجلات الحضور بنجاح',
+    showConfirmButton: false,
+    timer: 1500,
+  })
+  setTimeout(() => {
+    window.location.reload();
+  }, 2000);
+};
 
 const MapComponent = () => {
   const adminPassword = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
@@ -127,7 +150,7 @@ const cairoTime12hr = cairoTime.replace('AM', 'صباحا').replace('PM', 'مس�
         value={admin}
       />
 
-<div className='d-flex justify-content-center align-items-center'>
+<div className='d-flex justify-content-center align-items-center px-0'>
  
         <input
         type="search"
@@ -137,15 +160,17 @@ const cairoTime12hr = cairoTime.replace('AM', 'صباحا').replace('PM', 'مس�
         onChange={(e) => {
           const searchValue = e.target.value.toLowerCase();
           const filteredUsers = user.filter(user => user.employee?.employeeName.toLowerCase().includes(searchValue));
-          !filteredUsers.length ? setUser(user) : setUser(filteredUsers);
+          !filteredUsers.length ? setUser(user) : setTimeout(() => {
+            setUser(filteredUsers);
+          }, 5000);
         }}
       />
       
 </div>
 
-      <div className='row h-100'>
+      <div className='row m-0 w-100'>
         {admin === adminPassword && (
-          <div className='d-flex align-items-start position-relative  col-3' style={{maxHeight: 'fit-content!important'}}>
+          <div className='d-flex align-items-start pe-0 m-0 col-3' style={{maxHeight: 'fit-content!important'}}>
              <button
         className={admin === adminPassword ? 'btn btn-primary  ms-2 text-nowrap' : 'd-none'}
         onClick={ async () => {
@@ -165,24 +190,30 @@ const cairoTime12hr = cairoTime.replace('AM', 'صباحا').replace('PM', 'مس�
         
         <div
           id="map"
-          className={admin === adminPassword ? 'd-block position-relative h-75 col-9 overflow-hidden' : 'd-none'}
+          className={admin === adminPassword ? 'd-block position-relative col-9 overflow-hidden' : 'd-none'}
+          style={{ height: '600px'}}
         />
-      <div className='d-flex justify-content-center align-items-center'>
+    {user.length > 0 &&   <div className='d-flex justify-content-end mt-5 p-0 align-items-center'>
         <button
-          className={admin === adminPassword ? 'btn btn-danger  ms-2 text-nowrap' : 'd-none'}
+          className={admin === adminPassword ? 'btn btn-danger  me-2 text-nowrap' : 'd-none'}
           onClick={ async () => {
 handleExcelDownload(userLogInDataExcel, 'userLogInData.xlsx');          
           }}
         >   تصدير ملف تسجيل الحضور </button>
 
          <button
-          className={admin === adminPassword ? 'btn btn-success  ms-2 text-nowrap' : 'd-none'}
+          className={admin === adminPassword ? 'btn btn-success  me-2 text-nowrap' : 'd-none'}
           onClick={ async () => {
 handleExcelDownload(employeeLogInDataExcel, 'employeeLogInData.xlsx');          
           }}
         >   تصدير ملف تسجيل موظف </button>
-        
-        </div>
+        <button className={admin === adminPassword ? 'btn btn-secondary  me-2 text-nowrap' : 'd-none'} onClick={async () => {
+          await deleteAllAttendanceRecords();
+        }}>
+          حذف جميع سجلات الحضور
+        </button>
+
+        </div>}
       </div>
     </div>
   );

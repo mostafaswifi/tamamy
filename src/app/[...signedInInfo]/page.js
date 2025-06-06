@@ -1,57 +1,115 @@
 'use client'
-import React , {useEffect,useState} from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import {useGeolocated} from "react-geolocated";
+import { useGeolocated } from "react-geolocated";
 import addSignature from '@/lib/addSignature'
 import employeeLogIn from '@/lib/emloyeeLogIn'
 import signedIn from '../../../public/loggedIn.jpg'
+
 const SignedInInfo = () => {
   const params = useParams()
-  const [employe, setEmploye] = useState([])
-  const [employeeData, setEmployeeData] = useState({
-    employeeId: "",
-    cordx: "",
-    cordy: ""
-  })
-  const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated();
-  useEffect(()=>{
-    const data = async () => {
-      const employee = await employeeLogIn()
-     setEmploye(await employee.find(e => e.id.toString() === params.signedInInfo[1]))
-      // console.log(employeeData)
-      if (params.signedInInfo[1]) {
-        setEmployeeData({ employeeId:params.signedInInfo[1], cordx: params.signedInInfo[3],cordy: params.signedInInfo[2]})
-      }
-      if (!params.signedInInfo[2] || !params.signedInInfo[3]) {
-        setEmployeeData({ employeeId:params.signedInInfo[1], cordx: coords?.longitude,cordy: coords?.latitude})
-      }
-      // console.log({...employeeData})
+  const [employee, setEmployee] = useState(null)
+  const [submissionStatus, setSubmissionStatus] = useState('idle') // 'idle', 'submitting', 'success', 'error'
+  const { coords } = useGeolocated()
+
+  // Memoized employee data
+  const employeeData = useMemo(() => ({
+    employeeId: params.signedInInfo?.[1] || '',
+    cordx: params.signedInInfo?.[3] || coords?.longitude || '',
+    cordy: params.signedInInfo?.[2] || coords?.latitude || ''
+  }), [params.signedInInfo, coords])
+
+  // Fetch employee data
+  const fetchEmployeeData = useCallback(async () => {
+    try {
+      const employees = await employeeLogIn()
+      const foundEmployee = employees.find(e => e.id.toString() === employeeData.employeeId)
+      setEmployee(foundEmployee || null)
+    } catch (error) {
+      console.error("Error fetching employee data:", error)
+      setSubmissionStatus('error')
     }
-    data()
+  }, [employeeData.employeeId])
+
+  // Handle attendance submission
+  const submitAttendance = useCallback(async () => {
+    if (!employeeData.employeeId || !employeeData.cordx || !employeeData.cordy) {
+      console.error("Missing required data for submission")
+      return
+    }
+
+    if (submissionStatus === 'submitting' || submissionStatus === 'success') {
+      return
+    }
+
+    setSubmissionStatus('submitting')
     
-    // console.log(params.signedInInfo[1], params.signedInInfo[2], params.signedInInfo[3])
-    // console.log(employeeData)
+    try {
+      await addSignature(employeeData)
+      setSubmissionStatus('success')
+    } catch (error) {
+      console.error("Error submitting attendance:", error)
+      setSubmissionStatus('error')
+    }
+  }, [employeeData, submissionStatus])
 
-    
-  },[params.signedInInfo,coords])
+  // Initial data loading
+  useEffect(() => {
+    fetchEmployeeData()
+  }, [fetchEmployeeData])
 
-  useEffect(()=>{
+  // Submit attendance when data is ready
+  useEffect(() => {
+    if (employee && employeeData.employeeId && employeeData.cordx && employeeData.cordy) {
+      submitAttendance()
+    }
+  }, [employee, employeeData, submitAttendance])
 
-    employeeData? addSignature({...employeeData}) : null
+  if (submissionStatus === 'error') {
+    return (
+      <div className='container mt-5 d-flex justify-content-center align-items-center'>
+        <div className='alert alert-danger'>
+          حدث خطأ أثناء تسجيل الحضور. يرجى المحاولة مرة أخرى.
+        </div>
+      </div>
+    )
+  }
 
-  },[employeeData])
+  if (!employee) {
+    return (
+      <div className='container mt-5 d-flex justify-content-center align-items-center'>
+        <div className='spinner-border text-primary' role='status'>
+          <span className='visually-hidden'>جاري التحميل...</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className='container mt-5 d-flex justify-content-center align-items-center'>
-        <Image src={signedIn} alt="signedIn" width={500} height={500} />
-        <div className='d-flex flex-column justify-content-center align-items-center'>
-            <h1>تم تسجيل الحضور بنجاح</h1>
-           
-            <h2>الأستاذ / {employe.employeeName}</h2>
-            <h2></h2>
-            <h2>الوظيفة / {employe.jobTitle} {employe.department}</h2>
+    <div className='container mt-5 d-flex flex-column flex-md-row justify-content-center align-items-center gap-4'>
+      <Image 
+        src={signedIn} 
+        alt="signedIn" 
+        width={500} 
+        height={500}
+        priority
+        className='img-fluid'
+      />
+      <div className='text-center text-md-start'>
+        <h1 className='text-success mb-4'>تم تسجيل الحضور بنجاح</h1>
+        <h2 className='mb-3'>الأستاذ / {employee.employeeName}</h2>
+        <h2 className='mb-3'>الوظيفة / {employee.jobTitle}</h2>
+        {employee.department && <h2 className='mb-3'>القسم / {employee.department}</h2>}
+        <div className='mt-4 text-muted'>
+          <small>تم التسجيل في: {new Date().toLocaleString('ar-EG')}</small>
         </div>
+        {submissionStatus === 'submitting' && (
+          <div className="mt-3 text-primary">
+            جاري حفظ البيانات...
+          </div>
+        )}
+      </div>
     </div>
   )
 }

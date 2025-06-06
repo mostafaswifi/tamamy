@@ -23,16 +23,27 @@ const addEmploye = () => {
 
 const addEmployeeHandler = async (e, employee) => {
   e.preventDefault();
-  await addEmployee(
+
+ 
+
+
+
+if (employee?.employeeName && employee?.employeeCode && employee?.department && employee?.jobTitle) {
+    await addEmployee(
     employee?.employeeName,
     employee?.employeeCode,
     employee?.hireDate,
     employee?.department,
     employee?.jobTitle
   );
- 
-
-  setEmployee({
+    Swal.fire({
+      icon: "success",
+      title: "تم إضافة الموجه بنجاح",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  } else {
+      setEmployee({
     ...employee,
     employeeName: "",
     employeeCode: "",
@@ -40,13 +51,13 @@ const addEmployeeHandler = async (e, employee) => {
     department: "",
     jobTitle: "",
   });
-
-  Swal.fire({
-    icon: "success",
-    title: "تم إضافة الموجه بنجاح",
-    showConfirmButton: true,
-    timer: 1500,
-  });
+    Swal.fire({
+      icon: "error",
+      title: "خطأ في إضافة الموجه",
+      text: "يرجى التأكد من ملء جميع الحقول المطلوبة",
+      showConfirmButton: true,
+    });
+  }
 
 };
 
@@ -60,9 +71,9 @@ const routHandler = (e) => {
     <div className="container" dir="rtl">
      {password !== admin && (
        <input
-        className="mb-3 form-control"
+        className="my-5 form-control"
         type="password"
-        placeholder="كلمة المرور"
+        placeholder="أدخل كلمة مرور المسئول"
         onChange={(e) => setPassword(e.target.value)}
       />
      )}
@@ -81,7 +92,7 @@ const routHandler = (e) => {
           <input
             className="mb-3 form-control"
             type="text"
-            placeholder="كلمة المرور"
+            placeholder="أدخل كلمة مرور المسئول "
             value={employee.employeeCode}
             onChange={(e) =>
               setEmployee({ ...employee, employeeCode: e.target.value })

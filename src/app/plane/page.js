@@ -56,13 +56,21 @@ useEffect(() => {
     ]);
   }, [pointx1, pointy1, pointx2, pointy2, pointx3, pointy3, pointx4, pointy4, pointx5, pointy5]);
 
-  console.log(polygonPoints)
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addPlace(schoolName, placeId, polygonPoints);
-    setSchoolName("");
+    if (!schoolName || !pointx1 || !pointy1 || !pointx2 || !pointy2 || !pointx3 || !pointy3 || !pointx4 || !pointy4 || !pointx5 || !pointy5) {
+      Swal.fire({
+        title: 'خطأ!',
+        text: 'يرجى ملء جميع الحقول بشكل صحيح',
+        icon: 'error',
+        confirmButtonText: 'حاول مرة أخرى'
+      });
+      return;
+    }
+    await addPlace(schoolName, placeId, polygonPoints).then(() => {
+         setSchoolName("");
     setPlaceId("");
-    setPolygonPoints([]);
     setPointx1("");
     setPointy1("");
     setPointx2("");
@@ -73,6 +81,22 @@ useEffect(() => {
     setPointy4("");
     setPointx5("");
     setPointy5("");
+    setPolygonPoints([]);
+      Swal.fire({
+        title: 'تمت الإضافة!',
+        text: 'عملية ناجحة',
+        icon: 'success',
+        confirmButtonText: 'تم'
+      });
+    }).catch((error) => {
+      Swal.fire({
+        title: 'خطأ!',
+        text: 'حدث خطأ أثناء الإضافة',
+        icon: 'error',
+        confirmButtonText: 'حاول مرة أخرى'
+      });
+    }
+    );
     Swal.fire({
       title: 'تمت الإضافة!',
       text: 'عملية ناجحة',
@@ -87,8 +111,7 @@ useEffect(() => {
 
      {!flag &&
      <section className="my-5">
-     <label htmlFor="admin">كلمة المرور</label>
-     <input type="text" className="form-control my-3" onChange={(e) => e.target.value === admin? setFlag(true) : setFlag(false)}
+     <input type="text" placeholder="أدخل كلمة مرور المسئول" className="form-control my-3" onChange={(e) => e.target.value === admin? setFlag(true) : setFlag(false)}
      
      /></section>}
 

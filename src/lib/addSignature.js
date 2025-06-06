@@ -4,13 +4,14 @@ import axios from "axios"
 const URL_BASE = process.env.NEXT_PUBLIC_API_URL
 
 
-let addSignature = async (employeeId,cordX,cordY) => {
-  if (!employeeId) return;
+let addSignature = async ({employeeId,cordx,cordy}) => {
+  console.log('addSignature called with:', employeeId, cordx, cordy);
+  // if (!employeeId) return;
     const data = {
       employeeId: employeeId,
-      cordX: cordX,
-      cordY: cordY,
-     
+      cordx: cordx,
+      cordy: cordy,
+
     }
     
     try {

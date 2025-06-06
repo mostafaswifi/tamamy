@@ -1,11 +1,15 @@
 import axios from "axios";
 const URL_BASE = process.env.NEXT_PUBLIC_API_URL
 
-const addPlace = async (schoolName, placeId, polygonPoints) => {
+const addPlace = async (schoolName, placeId, points) => {
+  if (!points) {
+    return;
+  }
+  console.log(schoolName);
   const data = {
     name: schoolName,
     placeId: placeId,
-    polygonPoints: polygonPoints,
+    points: points,
   };
 
   try {

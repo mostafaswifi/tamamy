@@ -147,6 +147,7 @@ const cairoTime12hr = cairoTime.replace('AM', 'صباحا').replace('PM', 'مس�
         className={admin !== adminPassword ? 'form-control my-3' : 'd-none'}
         placeholder='ادخل كلمة مرور المسؤول'
         onChange={(e) => setAdmin(e.target.value)}
+        dir='rtl'
         value={admin}
       />
 

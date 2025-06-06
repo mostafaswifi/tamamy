@@ -5,7 +5,6 @@ const URL_BASE = process.env.NEXT_PUBLIC_API_URL
 
 
 let addSignature = async ({employeeId,cordx,cordy}) => {
-  console.log('addSignature called with:', employeeId, cordx, cordy);
   // if (!employeeId) return;
     const data = {
       employeeId: employeeId,

@@ -1,11 +1,97 @@
-useEffect(  () => {
+"use client";
+import { useEffect, useState, useCallback } from "react";
+import * as turf from "@turf/turf";
+import getPlaces from "@/lib/getPlaces";
+import employeeLogIn from "../../lib/emloyeeLogIn";
 
+const Page = () => {
+  const [employee, setEmployee] = useState(null);
+  const [arrayOfCoordinates, setArrayOfCoordinates] = useState([]);
+  const [schoolList, setSchoolList] = useState([]);
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const adminPassword = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
 
-      setEmployeeData({ employeeId:params.signedInInfo[1], cordy: params.signedInInfo[2],cordx: params.signedInInfo[3]})
-      addSignature({...employeeData})
- 
+  function openModal(e) {
+    setPassword(e.target.value)
+    if (password === adminPassword) {
+      setOpen(true);
+    }
+  }
+
+  // Fetch employee data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const employeeData = await employeeLogIn();
+        setEmployee(employeeData);
+      } catch (error) {
+        console.error("Error fetching employee data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Check if coordinates are within polygon boundaries
+  const checkCoordinatesInPolygon = useCallback((polygon, coordinates) => {
+    return coordinates.map(coord => 
+      turf.booleanPointInPolygon(coord, polygon)
+    );
+  }, []);
+
+  // Main function to process places and check coordinates
+  const processPlaces = useCallback(async (employeeId) => {
+    
+    setLoading(true);
+    try {
+      const selectedEmployee = employee?.find(emp => emp.id == employeeId);
+      if (!selectedEmployee) return;
+
+      // Get employee's attendance coordinates
+      const attendanceCoords = selectedEmployee.attendanceDepartures.map(
+        ({ cordx, cordy }) => [cordx, cordy]
+      );
+      setArrayOfCoordinates(attendanceCoords);
+
+      // Get all places data
+      const placesData = await getPlaces();
+      setPlaces(placesData);
+
+      // Process each place's polygon
+      const results = placesData.map(place => {
+        const polygonCoords = place.points.map(point => [point.cordx, point.cordy]);
+        if (polygonCoords.length < 3) return null; // Skip invalid polygons
+
+        const polygon = turf.polygon([polygonCoords]);
+        const isInsideArray = checkCoordinatesInPolygon(polygon, attendanceCoords);
         
- 
-   
+        return {
+          place,
+          isInsideArray
+        };
+      }).filter(Boolean);
+
+      // Filter schools with at least one matching coordinate
+      const matchedSchools = results
+        .filter(({ isInsideArray }) => isInsideArray.some(Boolean))
+        .map(({ place }) => place);
+
+      setSchoolList(matchedSchools);
+    } catch (error) {
+      console.error("Error processing places:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [employee, checkCoordinatesInPolygon]);
+
+  return (
+    <div className="container mx-auto p-4">
+      <input type="password" placeholder="اخل كلمة مرور المسئول" className="form-control mb-3" onChange={(e) => openModal(e)} />
       
-},[employeeData, params.signedInInfo])
+      </div>
+  );
+};
+
+export default Page;

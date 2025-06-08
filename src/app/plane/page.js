@@ -68,7 +68,7 @@ useEffect(() => {
       });
       return;
     }
-    await addPlace(schoolName, placeId, polygonPoints).then(() => {
+    await addPlace(schoolName, polygonPoints).then(() => {
          setSchoolName("");
     setPlaceId("");
     setPointx1("");

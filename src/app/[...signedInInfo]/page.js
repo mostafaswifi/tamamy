@@ -12,7 +12,7 @@ const SignedInInfo = () => {
   const [employee, setEmployee] = useState(null)
   const [submissionStatus, setSubmissionStatus] = useState('idle') // 'idle', 'submitting', 'success', 'error'
   const { coords } = useGeolocated()
-
+console.log(coords)
   // Memoized employee data
   const employeeData = useMemo(() => ({
     employeeId: params.signedInInfo?.[1] || '',

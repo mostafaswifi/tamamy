@@ -72,6 +72,15 @@ const NavBar = () => {
                   دخول مراقب
                 </Link>
               </li>
+              <li className="nav-item">
+                <Link
+                  className="nav-link"
+                  aria-current="page"
+                  href="/attendanceRecords"
+                >
+                  سجل الحضور 
+                </Link>
+              </li>
             </ul>
             {/* <form className="d-flex mt-3" role="search">
               <input

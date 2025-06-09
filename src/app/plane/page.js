@@ -3,7 +3,7 @@ import React, {  useEffect, useState } from "react";
 import Swal from 'sweetalert2'
 import addPlace from "@/lib/addPlace";
 
-const page = () => {
+const AddSchool = () => {
   const admin = '123456'
   const [flag, setFlag] = useState(false);
   const [schoolName, setSchoolName] = useState("");
@@ -183,4 +183,4 @@ useEffect(() => {
   );
 }
 
-export default page;
+export default AddSchool;

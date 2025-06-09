@@ -5,7 +5,7 @@ import getPlaces from "@/lib/getPlaces";
 import employeeLogIn from "../../lib/emloyeeLogIn";
 import { set } from "date-fns";
 
-const Page = () => {
+const AttendanceRecords = () => {
   const [employee, setEmployee] = useState(null);
   const [arrayOfCoordinates, setArrayOfCoordinates] = useState([]);
   const [schoolList, setSchoolList] = useState([]);
@@ -155,4 +155,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default AttendanceRecords;

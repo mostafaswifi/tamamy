@@ -6,7 +6,7 @@ import employeeLogIn from "@/lib/emloyeeLogIn";
 import deleteEmployer from "@/lib/deleteEmployer";
 import alterEmployee from "@/lib/alterEmployee";
 import Swal from "sweetalert2";
-const allEmployees = () => {
+const AllEmployees = () => {
   const admin = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
   const [employee, setEmployee] = useState({
     id: "",
@@ -124,4 +124,4 @@ const allEmployees = () => {
   );
 };
 
-export default allEmployees;
+export default AllEmployees;

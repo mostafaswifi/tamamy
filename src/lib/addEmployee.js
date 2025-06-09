@@ -1,7 +1,7 @@
 import axios from "axios";
 const URL_BASE = process.env.NEXT_PUBLIC_API_URL
 
-const addEmployee = async (employeeName, employeeCode, hireDate, department, jobTitle) => {
+const AddEmployee = async (employeeName, employeeCode, hireDate, department, jobTitle) => {
   if (!employeeName || !employeeCode || !department || !jobTitle) {
     return
   }
@@ -25,4 +25,4 @@ const addEmployee = async (employeeName, employeeCode, hireDate, department, job
   }
 }
 
-export default addEmployee;
+export default AddEmployee;

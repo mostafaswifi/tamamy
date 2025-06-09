@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import addEmployee from "../../lib/addEmployee";
+import AddEmployee from "../../lib/addEmployee";
 import Swal from "sweetalert2";
 import { redirect, useRouter } from "next/navigation";
 
@@ -11,7 +11,7 @@ const admin = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
 
 
 
-const addEmploye = () => {
+const AddEmploye = () => {
   const [password, setPassword] = useState("");
   const [employee, setEmployee] = useState({
     employeeName: "",
@@ -29,7 +29,7 @@ const addEmployeeHandler = async (e, employee) => {
 
 
 if (employee?.employeeName && employee?.employeeCode && employee?.department && employee?.jobTitle) {
-    await addEmployee(
+    await AddEmployee(
     employee?.employeeName,
     employee?.employeeCode,
     employee?.hireDate,
@@ -140,4 +140,4 @@ const routHandler = (e) => {
   );
 };
 
-export default addEmploye;
+export default AddEmploye;

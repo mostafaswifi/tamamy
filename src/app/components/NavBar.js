@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Link from "next/link";
+import { Inter } from 'next/font/google';
 import { cairo } from "@next/font/google";
 import { dynamic } from "next/dynamic";
 

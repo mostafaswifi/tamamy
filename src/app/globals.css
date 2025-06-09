@@ -3,7 +3,9 @@
   --foreground: #171717;
 }
 
-
+*{
+  color: black;
+}
 
 html,
 body {

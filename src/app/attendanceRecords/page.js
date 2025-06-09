@@ -46,7 +46,7 @@ const Page = () => {
       const selectedEmployee = employee?.find(emp => emp.id == employeeId);
       if (!selectedEmployee) return;
       setEmployeeShow(selectedEmployee);
-      console.log(selectedEmployee.attendanceDepartures.map(a=> a.createdAt))
+      console.log(selectedEmployee?.attendanceDepartures.map(a=> a?.createdAt))
 
       // Get employee's attendance coordinates
       const attendanceCoords = selectedEmployee.attendanceDepartures.map(
@@ -137,9 +137,9 @@ const Page = () => {
               <li key={idx} className="p-3 bg-green-50 border border-green-100 rounded">
                 <h3 className="font-medium">{school.name}</h3>
                 {/* {<h2>{employeeShow?.attendanceDepartures.map((a,idx)=> <p key={idx}>{ a[idx] == idx ? a.createdAt :  null}</p>)}</h2>} */}
-                {employeeShow.attendanceDepartures[idx].createdAt}
+                {employeeShow?.attendanceDepartures[idx]?.createdAt}
                 <p className="text-sm text-gray-600">
-                  {school.points.length} نقطة حدودية
+                  {school?.points.length} نقطة حدودية
                 </p>
                 {/* <p>{school}</p> */}
               </li>

@@ -13,7 +13,7 @@ const alterEmployee = async ({employeeName, employeeCode, department, jobTitle},
     };
 
     try {
-        await axios.put(`${URL_BASE}/employees/${id}`, data, {
+        await axios.put(`${URL_BASE}/api/employees/${id}`, data, {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: "Bearer your_token", // If needed

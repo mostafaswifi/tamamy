@@ -12,7 +12,7 @@ const addPlace = async (schoolName, points) => {
   };
 
   try {
-    await axios.post(`${URL_BASE}/places`, data, {
+    await axios.post(`${URL_BASE}/api/places`, data, {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer your_token", // If needed

@@ -3,7 +3,7 @@ import axios from "axios";
 const URL_BASE = process.env.NEXT_PUBLIC_API_URL
 const deleteEmployer = async (employeeId) => {
   try {
-    await axios.delete(`${URL_BASE}/employees/${employeeId}`, {
+    await axios.delete(`${URL_BASE}/api/employees/${employeeId}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer your_token", // If needed

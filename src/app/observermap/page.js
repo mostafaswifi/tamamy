@@ -14,7 +14,7 @@ const employeeLogInDataExcel = process.env.NEXT_PUBLIC_API_URL + '/employees';
 const deleteAllAttendanceRecords = async () => {
   const URL_BASE = process.env.NEXT_PUBLIC_API_URL;
   try {
-    await axios.delete(`${URL_BASE}/api/attendance`, {
+    await axios.delete(`${URL_BASE}/attendance`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer your_token", // If needed

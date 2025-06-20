@@ -15,7 +15,7 @@ let addSignature = async ({employeeId,cordx,cordy}) => {
     
     try {
         await axios.post(
-          `${URL_BASE}/api/attendance`, 
+          `${URL_BASE}/attendance`, 
          data,
           {
             headers: {

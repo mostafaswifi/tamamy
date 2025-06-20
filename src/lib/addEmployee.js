@@ -14,7 +14,7 @@ const AddEmployee = async (employeeName, employeeCode, hireDate, department, job
   };
 
   try {
-    await axios.post(`${URL_BASE}/api/employees`, data, {
+    await axios.post(`${URL_BASE}/employees`, data, {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer your_token", // If needed

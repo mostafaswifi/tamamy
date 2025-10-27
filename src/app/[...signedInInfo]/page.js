@@ -16,8 +16,8 @@ console.log(coords)
   // Memoized employee data
   const employeeData = useMemo(() => ({
     employeeId: params.signedInInfo?.[1] || '',
-    cordx: params.signedInInfo?.[3] || coords?.latitude|| '',
-    cordy: params.signedInInfo?.[2] || coords?.longitude  || ''
+    cordx: params.signedInInfo?.[2] || coords?.latitude|| '',
+    cordy: params.signedInInfo?.[3] || coords?.longitude  || ''
   }), [params.signedInInfo, coords])
 
   // Fetch employee data

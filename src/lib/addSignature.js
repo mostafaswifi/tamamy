@@ -8,8 +8,8 @@ let addSignature = async ({employeeId,cordx,cordy}) => {
   // if (!employeeId) return;
     const data = {
       employeeId: employeeId,
-      cordx: cordx,
-      cordy: cordy,
+      cordx: cordy,
+      cordy: cordx,
 
     }
     

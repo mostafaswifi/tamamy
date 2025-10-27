@@ -60,7 +60,7 @@ const AttendanceRecords = () => {
 
       // Process each place's polygon
       const results = placesData.map(place => {
-        const polygonCoords = place.points.map(point => [point.cordy, point.cordx]);
+        const polygonCoords = place.points.map(point => [point.cordx, point.cordy]);
         if (polygonCoords.length < 3) return null; // Skip invalid polygons
 
         const polygon = turf.polygon([polygonCoords]);

@@ -50,7 +50,7 @@ const AttendanceRecords = () => {
 
       // Get employee's attendance coordinates
       const attendanceCoords = selectedEmployee.attendanceDepartures.map(
-        ({ cordx, cordy }) => [cordx, cordy]
+        ({ cordx, cordy }) => [cordy, cordx]
       );
       setArrayOfCoordinates(attendanceCoords);
 

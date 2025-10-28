@@ -4,70 +4,93 @@ import * as turf from "@turf/turf";
 import getPlaces from "@/lib/getPlaces";
 import employeeLogIn from "../../lib/emloyeeLogIn";
 
-// Enhanced sub-components without icons
-const CoordinateList = ({ coordinates }) => (
-  <div className="mt-8 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-    <div className="bg-blue-500 p-4">
-      <h2 className="text-lg font-bold text-white">
-        إحداثيات الموظف
-      </h2>
+// Statistics Component
+const StatisticsCard = ({ coordinates, schools, employee }) => (
+  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
+    <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-100">إحصائيات التحقق</h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-100">
+        <div className="text-3xl font-bold text-blue-600 mb-2">{coordinates.length}</div>
+        <div className="text-gray-700 font-medium">إجمالي الإحداثيات</div>
+        <div className="text-gray-500 text-sm mt-2">نقطة توقيع</div>
+      </div>
+      
+      <div className="text-center p-6 bg-green-50 rounded-xl border border-green-100">
+        <div className="text-3xl font-bold text-green-600 mb-2">{schools.length}</div>
+        <div className="text-gray-700 font-medium">المدارس المطابقة</div>
+        <div className="text-gray-500 text-sm mt-2">مدرسة متطابقة</div>
+      </div>
+      
+      <div className="text-center p-6 bg-purple-50 rounded-xl border border-purple-100">
+        <div className="text-3xl font-bold text-purple-600 mb-2">
+          {employee ? 1 : 0}
+        </div>
+        <div className="text-gray-700 font-medium">موظف محدد</div>
+        <div className="text-gray-500 text-sm mt-2">حالة النشاط</div>
+      </div>
     </div>
-    <div className="p-4 max-h-80 overflow-y-auto">
+  </div>
+);
+
+// Enhanced sub-components with better spacing
+const CoordinateList = ({ coordinates }) => (
+  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div className="bg-blue-600 p-6">
+      <h2 className="text-xl font-bold text-white">إحداثيات الموظف</h2>
+    </div>
+    <div className="p-6 max-h-96 overflow-y-auto">
       {coordinates.length > 0 ? (
-        <div className="grid gap-2">
+        <div className="space-y-3">
           {coordinates.map(([lat, lng], idx) => (
             <div 
               key={idx} 
-              className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors duration-200"
+              className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-all duration-200 hover:shadow-sm"
             >
               <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                <span className="font-mono text-sm text-gray-700">
+                <div className="w-3 h-3 bg-blue-500 rounded-full ml-4"></div>
+                <span className="font-mono text-base text-gray-800">
                   {lat?.toFixed(6)}, {lng?.toFixed(6)}
                 </span>
               </div>
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                #{idx + 1}
+              <span className="text-sm bg-white text-blue-700 px-3 py-2 rounded-full border border-blue-200 font-medium">
+                نقطة #{idx + 1}
               </span>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <p className="text-gray-500 text-lg">لا توجد إحداثيات متاحة</p>
+        <div className="text-center py-12">
+          <p className="text-gray-600 text-lg mb-2">لا توجد إحداثيات متاحة</p>
+          <p className="text-gray-500">سيتم عرض الإحداثيات هنا بعد اختيار الموظف</p>
         </div>
       )}
     </div>
   </div>
 );
 
-const SchoolList = ({ schools, employeeData }) => (
-  <div className="mt-8 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-    <div className="bg-green-500 p-4">
-      <h2 className="text-lg font-bold text-white">
-        المدارس المطابقة
-      </h2>
+const SchoolList = ({ schools }) => (
+  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+    <div className="bg-green-600 p-6">
+      <h2 className="text-xl font-bold text-white">المدارس المطابقة</h2>
     </div>
-    <div className="p-4">
+    <div className="p-6">
       {schools.length > 0 ? (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {schools.map((school, idx) => (
             <div 
               key={school.id || idx} 
-              className="p-4 bg-green-50 rounded-xl border border-green-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
+              className="p-5 bg-green-50 rounded-xl border border-green-200 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="font-bold text-green-800 text-lg mb-2">
-                    {school.name}
-                  </h3>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <span className="bg-white px-3 py-1 rounded-full border border-green-200">
+                  <h3 className="font-bold text-green-800 text-lg mb-3">{school.name}</h3>
+                  <div className="flex items-center">
+                    <span className="bg-white px-4 py-2 rounded-full border border-green-200 text-green-700 font-medium">
                       {school.points?.length || 0} نقطة حدودية
                     </span>
                   </div>
                 </div>
-                <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold border border-green-300">
                   مطابقة
                 </div>
               </div>
@@ -76,8 +99,8 @@ const SchoolList = ({ schools, employeeData }) => (
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">لا توجد مدارس مطابقة لإحداثيات الموظف</p>
-          <p className="text-gray-400 text-sm mt-2">تأكد من صحة الإحداثيات أو حدود المدارس</p>
+          <p className="text-gray-600 text-lg mb-2">لا توجد مدارس مطابقة</p>
+          <p className="text-gray-500">لم يتم العثور على مدارس تطابق إحداثيات التواجد</p>
         </div>
       )}
     </div>
@@ -173,27 +196,27 @@ const AttendanceRecords = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" dir="rtl">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6" dir="rtl">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 transform transition-all duration-300 hover:shadow-2xl">
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl font-bold">ق</span>
+          <div className="bg-white rounded-3xl shadow-xl p-10 border border-gray-200">
+            <div className="text-center mb-10">
+              <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-white text-3xl font-bold">ن</span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">تسجيل دخول المسئول</h2>
-              <p className="text-gray-600 mt-2">أدخل كلمة المرور للوصول إلى النظام</p>
+              <h2 className="text-3xl font-bold text-gray-800 mb-3">تسجيل دخول المسئول</h2>
+              <p className="text-gray-600 text-lg">أدخل كلمة المرور للوصول إلى النظام</p>
             </div>
             
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-base font-medium text-gray-700 mb-4">
                   كلمة المرور
                 </label>
                 <input 
                   type="password" 
                   value={password} 
                   placeholder="أدخل كلمة مرور المسئول" 
-                  className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full p-5 border-2 border-gray-300 rounded-2xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-lg"
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
                 />
@@ -201,13 +224,13 @@ const AttendanceRecords = () => {
               
               <button 
                 onClick={handleAdminLogin}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-2xl font-semibold hover:from-blue-600 hover:to-purple-700 transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="w-full bg-blue-600 text-white p-5 rounded-2xl font-bold text-lg hover:bg-blue-700 transform hover:-translate-y-1 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                دخول
+                دخول إلى النظام
               </button>
               
               {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-center animate-pulse">
+                <div className="p-5 bg-red-50 border-2 border-red-200 rounded-2xl text-red-700 text-center text-lg font-medium">
                   {error}
                 </div>
               )}
@@ -219,58 +242,56 @@ const AttendanceRecords = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50" dir="rtl">
+    <div className="min-h-screen bg-gray-50" dir="rtl">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
+      <header className="bg-white shadow-lg border-b border-gray-200">
+        <div className="container mx-auto px-6 py-6">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4 space-x-reverse">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">ن</span>
+            <div className="flex items-center space-x-5 space-x-reverse">
+              <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">ن</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">نظام التحقق من مكان التوقيع</h1>
-                <p className="text-gray-600">نظام تتبع وتحليل مواقع التواجد</p>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">نظام التحقق من مكان التوقيع</h1>
+                <p className="text-gray-600 text-lg">نظام تتبع وتحليل مواقع التواجد للموظفين</p>
               </div>
             </div>
             
             <button 
               onClick={() => setIsAuthenticated(false)}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium"
+              className="px-8 py-4 bg-gray-100 text-gray-700 rounded-2xl hover:bg-gray-200 transition-colors duration-200 font-bold text-lg border border-gray-300"
             >
-              خروج
+              خروج من النظام
             </button>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto px-6 py-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 animate-fade-in">
+          <div className="mb-8 p-6 bg-red-50 border-2 border-red-200 rounded-2xl text-red-700 text-lg font-medium">
             {error}
           </div>
         )}
 
         {/* Employee Selection Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-gray-800">اختر الموظف</h2>
-          </div>
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">اختر الموظف للتحقق</h2>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
-              <label htmlFor="employeeSelect" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="employeeSelect" className="block text-lg font-medium text-gray-700 mb-4">
                 اختر اسم الموجه من القائمة المنسدلة التالية
               </label>
               <select
                 id="employeeSelect"
                 value={selectedEmployee}
                 onChange={(e) => processPlaces(e.target.value)}
-                className="w-full p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                className="w-full p-5 border-2 border-gray-300 rounded-2xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 bg-white text-lg"
                 disabled={loading || !employee}
               >
                 <option value="">
-                  {loading ? "جاري التحميل..." : "اختر موظف من القائمة"}
+                  {loading ? "جاري تحميل بيانات الموظفين..." : "اختر موظف من القائمة"}
                 </option>
                 {employee?.map((emp) => (
                   <option key={emp.id} value={emp.id}>
@@ -281,16 +302,16 @@ const AttendanceRecords = () => {
             </div>
 
             {selectedEmployee && employeeShow && (
-              <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="p-6 bg-blue-50 rounded-2xl border-2 border-blue-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-blue-800">{employeeShow.employeeName}</h3>
-                    <p className="text-sm text-blue-600">
-                      {arrayOfCoordinates.length} نقطة توقيع متاحة
+                    <h3 className="font-bold text-blue-800 text-xl mb-2">{employeeShow.employeeName}</h3>
+                    <p className="text-blue-600 text-lg">
+                      {arrayOfCoordinates.length} نقطة توقيع متاحة للتحقق
                     </p>
                   </div>
-                  <div className="bg-white px-3 py-1 rounded-full text-sm text-blue-700 border border-blue-200">
-                    نشط
+                  <div className="bg-white px-5 py-3 rounded-2xl text-lg text-blue-700 border-2 border-blue-300 font-bold">
+                    موظف نشط
                   </div>
                 </div>
               </div>
@@ -298,31 +319,41 @@ const AttendanceRecords = () => {
           </div>
         </div>
 
+        {/* Statistics Card */}
+        {selectedEmployee && (
+          <StatisticsCard 
+            coordinates={arrayOfCoordinates} 
+            schools={schoolList} 
+            employee={employeeShow} 
+          />
+        )}
+
         {/* Loading State */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-12 bg-white rounded-2xl shadow-lg border border-gray-100 mb-6">
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl shadow-lg border border-gray-200 mb-8">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+              <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
             </div>
-            <p className="mt-4 text-lg text-gray-700 font-medium">جاري معالجة البيانات الجغرافية...</p>
-            <p className="text-gray-500 mt-2">قد تستغرق العملية بضع ثوانٍ</p>
+            <p className="mt-6 text-xl text-gray-700 font-bold">جاري معالجة البيانات الجغرافية</p>
+            <p className="text-gray-500 text-lg mt-3">قد تستغرق العملية بضع ثوانٍ</p>
           </div>
         )}
 
         {/* Results */}
         {!loading && selectedEmployee && (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <CoordinateList coordinates={arrayOfCoordinates} />
-            <SchoolList schools={schoolList} employeeData={employeeShow} />
+            <SchoolList schools={schoolList} />
           </div>
         )}
 
         {/* Empty State */}
         {!loading && !selectedEmployee && (
-          <div className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-600 mb-3">مرحباً في نظام التتبع</h3>
-            <p className="text-gray-500 max-w-md mx-auto">
+          <div className="text-center py-20 bg-white rounded-2xl shadow-lg border border-gray-200">
+            <h3 className="text-2xl font-bold text-gray-700 mb-4">مرحباً في نظام تتبع التواجد</h3>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
               اختر موظفاً من القائمة المنسدلة أعلاه لبدء عملية التحقق من مواقع التواجد والمدارس المطابقة.
+              سيعرض النظام الإحصائيات والإحداثيات والمدارس المتطابقة تلقائياً.
             </p>
           </div>
         )}

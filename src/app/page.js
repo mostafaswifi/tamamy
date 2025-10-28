@@ -17,7 +17,6 @@ import erp4 from '../../public/erp4.jpg';
 import erp5 from '../../public/erp5.jpg';
 import sign from '../../public/sign.jpg';
 
-
 export default function AttendanceSystem() {
   // State management
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,7 +42,6 @@ export default function AttendanceSystem() {
         const userData = await employeeLogIn();
         setUser(userData);
       } catch (error) {
-        // console.error("Failed to fetch user data:", error);
         setError("فشل في تحميل بيانات المستخدمين");
       }
     };
@@ -104,72 +102,213 @@ export default function AttendanceSystem() {
   };
 
   return (
-    <>
-      <MySwiper myImages={images} />
-
-      <div className="row m-lg-5 m-md-4 justify-content-center align-items-center p-lg-5 p-md-2 p-sm-1" style={{ direction: "rtl" }}>
-        <div className="col-lg-5 d-flex justify-content-center align-items-center">
-          <Image src={sign} alt="sign" layout="responsive" width={400} height={400} />
+    <div className="bg-light min-vh-100" dir="rtl">
+      {/* Header */}
+      <nav className="navbar navbar-light bg-white shadow-sm border-bottom">
+        <div className="container">
+          <div className="d-flex align-items-center">
+            <div className="bg-primary rounded-2 d-flex align-items-center justify-content-center me-3" 
+                 style={{ width: '45px', height: '45px' }}>
+              <span className="text-white fw-bold fs-5">ح</span>
+            </div>
+            <div>
+              <h1 className="navbar-brand h5 mb-0 fw-bold text-dark">نظام تسجيل الحضور</h1>
+              <p className="text-muted small mb-0">نظام تتبع الحضور الجغرافي للموظفين</p>
+            </div>
+          </div>
         </div>
-       
-        <div className="col-lg-7 m-2 m-lg-0">
-          <form onSubmit={handleLogin} className="m-2">
-            <h1 className="h3 mb-3 fw-normal">تسجيل الحضور</h1>
+      </nav>
 
-            {error && (
-              <div className="alert alert-danger" role="alert">
-                {error}
+      <div className="container py-4">
+        {/* Hero Section with Carousel */}
+        <div className="card shadow-lg border-0 mb-4 overflow-hidden">
+          <div className="card-body p-0">
+            <MySwiper myImages={images} />
+          </div>
+        </div>
+
+        {/* Login Section */}
+        <div className="row g-4 justify-content-center align-items-center">
+          {/* Login Form */}
+          <div className="col-lg-6">
+            <div className="card shadow-lg border-0">
+              <div className="card-header bg-primary text-white border-0 py-4">
+                <h2 className="card-title h4 mb-0 fw-bold text-center">
+                  تسجيل الحضور
+                </h2>
               </div>
-            )}
+              <div className="card-body p-4">
+                <form onSubmit={handleLogin}>
+                  {error && (
+                    <div className="alert alert-danger d-flex align-items-center" role="alert">
+                      <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                      <div>{error}</div>
+                    </div>
+                  )}
 
-            <div className="form-floating mb-3">
-              <input 
-                type="text" 
-                id="username"
-                value={logIn.username} 
-                onChange={handleInputChange} 
-                className="form-control" 
-                placeholder="أدخل اسم المستخدم "
-                disabled={isSubmitting}
-                required
-              />
-              <label htmlFor="username">أكتب اسم المستخدم</label>
-            </div>
-            
-            <div className="form-floating mb-3">
-              <input 
-                type="password" 
-                id="password"
-                value={logIn.password} 
-                onChange={handleInputChange} 
-                className="form-control" 
-                placeholder=" أدخل كلمة المرور "
-                direction="rtl"
-                disabled={isSubmitting}
-                required
-              />
-              <label htmlFor="password">كلمة المرور</label>
-            </div>
+                  {/* Location Status */}
+                  <div className="alert alert-info d-flex align-items-center mb-4" role="alert">
+                    <i className="bi bi-geo-alt-fill me-2"></i>
+                    <div>
+                      <strong>حالة الموقع:</strong> 
+                      {isGeolocationAvailable && isGeolocationEnabled ? 
+                        " ✓ جاهز لتسجيل الموقع" : 
+                        " ⚠️ يرجى تفعيل خدمة الموقع"
+                      }
+                    </div>
+                  </div>
 
-            <button 
-              className="btn btn-primary w-100 py-2" 
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  جاري المعالجة...
-                </>
-              ) : 'تسجيل الدخول'}
-            </button>
-            
-            <p className="mt-5 mb-3 text-body-secondary">© 2017–2025</p>
-          </form>
+                  <div className="mb-3">
+                    <label htmlFor="username" className="form-label fw-semibold text-dark">
+                      اسم المستخدم
+                    </label>
+                    <input 
+                      type="text" 
+                      id="username"
+                      value={logIn.username} 
+                      onChange={handleInputChange} 
+                      className="form-control form-control-lg" 
+                      placeholder="أدخل اسم المستخدم"
+                      disabled={isSubmitting}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="password" className="form-label fw-semibold text-dark">
+                      كلمة المرور
+                    </label>
+                    <input 
+                      type="password" 
+                      id="password"
+                      value={logIn.password} 
+                      onChange={handleInputChange} 
+                      className="form-control form-control-lg" 
+                      placeholder="أدخل كلمة المرور"
+                      disabled={isSubmitting}
+                      required
+                    />
+                  </div>
+
+                  <button 
+                    className="btn btn-primary btn-lg w-100 fw-bold py-3"
+                    type="submit"
+                    disabled={isSubmitting || !isGeolocationAvailable || !isGeolocationEnabled}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        جاري تسجيل الحضور...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-circle-fill me-2"></i>
+                        تسجيل الحضور
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="col-lg-6">
+            <div className="card shadow-lg border-0 h-100">
+              <div className="card-header bg-white border-0 py-4">
+                <h3 className="card-title h5 mb-0 fw-bold text-primary text-center">
+                  معلومات النظام
+                </h3>
+              </div>
+              <div className="card-body">
+                <div className="text-center mb-4">
+                  <Image 
+                    src={sign} 
+                    alt="Attendance System" 
+                    className="img-fluid rounded-3"
+                    width={300}
+                    height={300}
+                    style={{maxHeight: '200px', objectFit: 'cover'}}
+                  />
+                </div>
+                
+                <div className="row g-3">
+                  <div className="col-12">
+                    <div className="d-flex align-items-center p-3 bg-light rounded-3">
+                      <i className="bi bi-geo-fill text-primary fs-4 me-3"></i>
+                      <div>
+                        <h6 className="fw-bold mb-1">تسجيل جغرافي</h6>
+                        <p className="text-muted small mb-0">تسجيل الموقع الجغرافي الفعلي للحضور</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="col-12">
+                    <div className="d-flex align-items-center p-3 bg-light rounded-3">
+                      <i className="bi bi-clock-fill text-success fs-4 me-3"></i>
+                      <div>
+                        <h6 className="fw-bold mb-1">توقيت دقيق</h6>
+                        <p className="text-muted small mb-0">تسجيل الوقت الفعلي للحضور</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="col-12">
+                    <div className="d-flex align-items-center p-3 bg-light rounded-3">
+                      <i className="bi bi-shield-check-fill text-warning fs-4 me-3"></i>
+                      <div>
+                        <h6 className="fw-bold mb-1">آمن ومؤمن</h6>
+                        <p className="text-muted small mb-0">نظام آمن لحماية بيانات الحضور</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="row mt-5">
+          <div className="col-md-3">
+            <div className="card border-0 bg-primary text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">{user.length}</div>
+                <div className="small">موظف مسجل</div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="card border-0 bg-success text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">نظام</div>
+                <div className="small">تسجيل جغرافي</div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="card border-0 bg-info text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">24/7</div>
+                <div className="small">متاح دائمًا</div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="card border-0 bg-warning text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">آمن</div>
+                <div className="small">وحماية بيانات</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-5 pt-4 border-top">
+          <p className="text-muted mb-0">© 2024 نظام تسجيل الحضور الجغرافي. جميع الحقوق محفوظة.</p>
         </div>
       </div>
-
-      {/* ... rest of your informational content ... */}
-    </>
+    </div>
   );
 }

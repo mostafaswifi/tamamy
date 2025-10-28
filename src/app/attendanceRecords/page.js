@@ -4,6 +4,44 @@ import * as turf from "@turf/turf";
 import getPlaces from "@/lib/getPlaces";
 import employeeLogIn from "../../lib/emloyeeLogIn";
 
+// Define the sub-components outside the main component or inside it
+const CoordinateList = ({ coordinates }) => (
+  <div className="mt-6">
+    <h2 className="text-lg font-semibold mb-2">إحداثيات الموظف:</h2>
+    {coordinates.length > 0 ? (
+      <ul className="space-y-2 max-h-60 overflow-y-auto">
+        {coordinates.map(([lat, lng], idx) => (
+          <li key={idx} className="p-2 bg-gray-100 rounded text-sm">
+            {lat?.toFixed(6)}, {lng?.toFixed(6)}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-gray-500">لا توجد إحداثيات متاحة</p>
+    )}
+  </div>
+);
+
+const SchoolList = ({ schools, employeeData }) => (
+  <div className="mt-6">
+    <h2 className="text-lg font-semibold mb-2">المدارس المطابقة:</h2>
+    {schools.length > 0 ? (
+      <ul className="space-y-3">
+        {schools.map((school, idx) => (
+          <li key={school.id || idx} className="p-3 bg-green-50 border border-green-200 rounded">
+            <h3 className="font-medium text-green-800">{school.name}</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {school.points?.length || 0} نقطة حدودية
+            </p>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-gray-500">لا توجد مدارس مطابقة لإحداثيات الموظف</p>
+    )}
+  </div>
+);
+
 const AttendanceRecords = () => {
   const [employee, setEmployee] = useState(null);
   const [arrayOfCoordinates, setArrayOfCoordinates] = useState([]);
@@ -100,13 +138,13 @@ const AttendanceRecords = () => {
               type="password" 
               value={password} 
               placeholder="أدخل كلمة مرور المسئول" 
-              className="form-control w-full"
+              className="form-control w-full p-2 border rounded"
               onChange={(e) => setPassword(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
             />
             <button 
               onClick={handleAdminLogin}
-              className="btn btn-primary w-full"
+              className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               دخول
             </button>
@@ -123,26 +161,26 @@ const AttendanceRecords = () => {
         <h1 className="text-xl font-bold">نظام التحقق من مكان التوقيع</h1>
         <button 
           onClick={() => setIsAuthenticated(false)}
-          className="btn btn-secondary"
+          className="p-2 bg-gray-500 text-white rounded hover:bg-gray-600"
         >
           خروج
         </button>
       </div>
 
       {error && (
-        <div className="alert alert-error mb-4">
+        <div className="p-3 bg-red-100 text-red-700 rounded mb-4">
           {error}
         </div>
       )}
 
       <div className="mb-4">
-        <label htmlFor="employeeSelect" className="block mb-2 form-label">
+        <label htmlFor="employeeSelect" className="block mb-2 font-medium">
           اختر اسم الموجه من القائمة المنسدلة التالية
         </label>
         <select
           id="employeeSelect"
           onChange={(e) => processPlaces(e.target.value)}
-          className="w-full p-2 border rounded form-control"
+          className="w-full p-2 border rounded"
           disabled={loading || !employee}
         >
           <option value="">
@@ -157,8 +195,8 @@ const AttendanceRecords = () => {
       </div>
 
       {loading && (
-        <div className="flex justify-center my-4">
-          <div className="loading loading-spinner loading-lg"></div>
+        <div className="flex justify-center items-center my-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           <span className="mr-2">جاري المعالجة...</span>
         </div>
       )}

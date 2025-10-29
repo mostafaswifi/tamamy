@@ -2,7 +2,7 @@
 import { useState } from "react";
 import AddEmployee from "../../lib/addEmployee";
 import Swal from "sweetalert2";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const admin = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
 
@@ -23,7 +23,7 @@ const AddEmploye = () => {
     e.preventDefault();
 
     // Validate required fields
-    const { employeeName, employeeCode, department, jobTitle } = employee;
+    const { employeeName, employeeCode, department, jobTitle, hireDate } = employee;
     if (!employeeName || !employeeCode || !department || !jobTitle) {
       Swal.fire({
         icon: "error",
@@ -35,6 +35,7 @@ const AddEmploye = () => {
     }
 
     try {
+      // Fixed: Use the destructured variables
       await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
       
       // Reset form on success
@@ -54,6 +55,7 @@ const AddEmploye = () => {
         timer: 1500,
       });
     } catch (error) {
+      console.error("Error adding employee:", error);
       Swal.fire({
         icon: "error",
         title: "خطأ في الإضافة",
@@ -71,9 +73,9 @@ const AddEmploye = () => {
     }
   };
 
-  const routHandler = (e) => {
+  const routeHandler = (e) => {
     e.preventDefault();   
-    router.replace("/allEmployees");
+    router.push("/allEmployees");
   };
 
   const resetForm = () => {
@@ -84,6 +86,11 @@ const AddEmploye = () => {
       department: "",
       jobTitle: "",
     });
+  };
+
+  const logoutHandler = () => {
+    setIsAuthenticated(false);
+    setPassword("");
   };
 
   return (
@@ -147,7 +154,8 @@ const AddEmploye = () => {
                 </div>
                 <button 
                   className="btn btn-outline-secondary"
-                  onClick={() => setIsAuthenticated(false)}
+                  onClick={logoutHandler}
+                  type="button"
                 >
                   خروج
                 </button>
@@ -241,7 +249,7 @@ const AddEmploye = () => {
                 {/* Action Buttons */}
                 <div className="row mt-5">
                   <div className="col-12">
-                    <div className="d-flex gap-3 justify-content-center">
+                    <div className="d-flex gap-3 justify-content-center flex-wrap">
                       <button 
                         type="submit" 
                         className="btn btn-primary btn-lg fw-bold px-5"
@@ -252,7 +260,7 @@ const AddEmploye = () => {
                       <button 
                         type="button" 
                         className="btn btn-success btn-lg fw-bold px-5"
-                        onClick={routHandler}
+                        onClick={routeHandler}
                       >
                         <i className="bi bi-pencil-square me-2"></i>
                         تعديل بيانات موجه

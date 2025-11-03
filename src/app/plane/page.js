@@ -39,7 +39,7 @@ const AddSchool = () => {
     setPoints(newPoints);
   };
 
-  // دالة لتوليد 5 نقاط حول نقطة مركزية
+  // دالة لتوليد 5 نقاط حول نقطة مركزية مع إغلاق المضلع
   const generatePointsAroundCenter = () => {
     if (!centerPoint.x || !centerPoint.y) {
       Swal.fire({
@@ -58,8 +58,9 @@ const AddSchool = () => {
     const generatedPoints = [];
     const radiusInDegrees = radiusKm / 111.32; // 111.32 كم لكل درجة
 
-    for (let i = 0; i < 5; i++) {
-      const angle = (i * 2 * Math.PI) / 5;
+    // توليد 4 نقاط فقط + النقطة الخامسة ستكون مثل الأولى
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * 2 * Math.PI) / 4; // 4 نقاط للمستطيل
       
       // حساب الإحداثيات بدقة 7 خانات عشرية
       const lat = centerLat + (radiusInDegrees * Math.sin(angle));
@@ -71,11 +72,75 @@ const AddSchool = () => {
       });
     }
 
+    // النقطة الخامسة = النقطة الأولى لإغلاق المضلع
+    generatedPoints.push({
+      x: generatedPoints[0].x,
+      y: generatedPoints[0].y
+    });
+
     setPoints(generatedPoints);
     
     Swal.fire({
       title: 'تم التوليد!',
-      text: 'تم توليد 5 نقاط حول المركز بنجاح',
+      text: 'تم توليد 5 نقاط مضلع مغلق بنجاح',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  };
+
+  // دالة بديلة لتوليد مستطيل أكثر دقة
+  const generateRectanglePoints = () => {
+    if (!centerPoint.x || !centerPoint.y) {
+      Swal.fire({
+        title: 'بيانات ناقصة!',
+        text: 'يرجى إدخال النقطة المركزية أولاً',
+        icon: 'warning',
+        confirmButtonText: 'حسناً'
+      });
+      return;
+    }
+
+    const centerLat = parseFloat(centerPoint.x);
+    const centerLng = parseFloat(centerPoint.y);
+    const radiusKm = radius;
+    
+    const radiusInDegrees = radiusKm / 111.32;
+
+    // نقاط المستطيل (شمال غرب، شمال شرق، جنوب شرق، جنوب غرب، والعودة لشمال غرب)
+    const rectanglePoints = [
+      // النقطة 1: شمال غرب
+      {
+        x: (centerLat + radiusInDegrees).toFixed(7),
+        y: (centerLng - radiusInDegrees).toFixed(7)
+      },
+      // النقطة 2: شمال شرق
+      {
+        x: (centerLat + radiusInDegrees).toFixed(7),
+        y: (centerLng + radiusInDegrees).toFixed(7)
+      },
+      // النقطة 3: جنوب شرق
+      {
+        x: (centerLat - radiusInDegrees).toFixed(7),
+        y: (centerLng + radiusInDegrees).toFixed(7)
+      },
+      // النقطة 4: جنوب غرب
+      {
+        x: (centerLat - radiusInDegrees).toFixed(7),
+        y: (centerLng - radiusInDegrees).toFixed(7)
+      },
+      // النقطة 5: شمال غرب (إغلاق المضلع - نفس النقطة الأولى)
+      {
+        x: (centerLat + radiusInDegrees).toFixed(7),
+        y: (centerLng - radiusInDegrees).toFixed(7)
+      }
+    ];
+
+    setPoints(rectanglePoints);
+    
+    Swal.fire({
+      title: 'تم التوليد!',
+      text: 'تم توليد مستطيل مغلق بنجاح',
       icon: 'success',
       timer: 1500,
       showConfirmButton: false
@@ -155,6 +220,28 @@ const AddSchool = () => {
       return;
     }
 
+    // التحقق من أن النقطة الأولى والأخيرة متطابقتان (مضلع مغلق)
+    const isPolygonClosed = points[0].x === points[4].x && points[0].y === points[4].y;
+    
+    if (!isPolygonClosed) {
+      Swal.fire({
+        title: 'المضلع غير مغلق!',
+        html: 'النقطة الأخيرة يجب أن تكون مثل النقطة الأولى لإغلاق المضلع.<br>هل تريد إصلاح ذلك تلقائياً؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، أصلحه',
+        cancelButtonText: 'لا، سأصلحه يدوياً'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // إصلاح تلقائي: جعل النقطة الأخيرة مثل الأولى
+          const fixedPoints = [...points];
+          fixedPoints[4] = { x: points[0].x, y: points[0].y };
+          setPoints(fixedPoints);
+        }
+      });
+      return;
+    }
+
     try {
       await addPlace(schoolName, polygonPoints);
       
@@ -193,6 +280,10 @@ const AddSchool = () => {
     setAdminPassword("");
     setFlag(false);
   };
+
+  // دالة للتحقق مما إذا كان المضلع مغلقاً
+  const isPolygonClosed = points[0].x && points[0].y && points[4].x && points[4].y && 
+                         points[0].x === points[4].x && points[0].y === points[4].y;
 
   return (
     <div className="bg-light min-vh-100" dir="rtl">
@@ -332,9 +423,16 @@ const AddSchool = () => {
                           <button 
                             type="button" 
                             className="btn btn-success"
+                            onClick={generateRectanglePoints}
+                          >
+                            توليد مستطيل مغلق
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn btn-outline-success"
                             onClick={generatePointsAroundCenter}
                           >
-                            توليد النقاط تلقائياً
+                            توليد دائري مغلق
                           </button>
                           <button 
                             type="button" 
@@ -356,16 +454,24 @@ const AddSchool = () => {
                 <div className="mb-4">
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="fw-bold text-dark mb-0">الإحداثيات الجغرافية للمضلع</h5>
-                    <span className="badge bg-primary fs-6">5 نقاط مطلوبة</span>
+                    <div className="d-flex gap-2 align-items-center">
+                      <span className="badge bg-primary fs-6">5 نقاط مطلوبة</span>
+                      {isPolygonClosed && (
+                        <span className="badge bg-success fs-6">المضلع مغلق</span>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="row g-3">
                     {points.map((point, index) => (
                       <div key={index} className="col-md-6 col-lg-4">
-                        <div className="card border-0 bg-light hover-shadow">
+                        <div className={`card border-0 ${index === 4 ? 'border-success border-2' : 'bg-light'} hover-shadow`}>
                           <div className="card-body">
                             <h6 className="card-title fw-semibold text-primary mb-3">
                               النقطة {index + 1}
+                              {index === 4 && (
+                                <span className="badge bg-success ms-2">إغلاق المضلع</span>
+                              )}
                             </h6>
                             <div className="row g-2">
                               <div className="col-6">
@@ -391,6 +497,15 @@ const AddSchool = () => {
                                 />
                               </div>
                             </div>
+                            {index === 4 && points[0].x && points[0].y && (
+                              <div className="mt-2">
+                                <small className={`text-${point.x === points[0].x && point.y === points[0].y ? 'success' : 'danger'}`}>
+                                  {point.x === points[0].x && point.y === points[0].y 
+                                    ? '✓ مطابقة للنقطة الأولى' 
+                                    : '✗ يجب أن تطابق النقطة الأولى'}
+                                </small>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -405,7 +520,7 @@ const AddSchool = () => {
                       <button 
                         type="submit" 
                         className="btn btn-primary btn-lg fw-bold px-5"
-                        disabled={polygonPoints.length !== 5}
+                        disabled={polygonPoints.length !== 5 || !isPolygonClosed}
                       >
                         إضافة المدرسة
                       </button>
@@ -433,8 +548,11 @@ const AddSchool = () => {
                       </span>
                     </div>
                     <div className="text-end">
-                      <span className={`badge ${polygonPoints.length === 5 ? 'bg-success' : 'bg-warning'} fs-6`}>
+                      <span className={`badge ${polygonPoints.length === 5 ? 'bg-success' : 'bg-warning'} fs-6 me-2`}>
                         {polygonPoints.length}/5 نقاط محددة
+                      </span>
+                      <span className={`badge ${isPolygonClosed ? 'bg-success' : 'bg-danger'} fs-6`}>
+                        {isPolygonClosed ? 'المضلع مغلق' : 'المضلع مفتوح'}
                       </span>
                     </div>
                   </div>
@@ -450,10 +568,11 @@ const AddSchool = () => {
             <div className="card-body">
               <h6 className="card-title fw-bold mb-3">تعليمات هامة:</h6>
               <ul className="list-unstyled mb-0">
-                <li className="mb-2">• يمكنك إدخال الإحداثيات يدوياً أو استخدام المولد التلقائي</li>
+                <li className="mb-2">• <strong>النقطة الخامسة يجب أن تكون مطابقة تماماً للنقطة الأولى</strong> لإغلاق المضلع</li>
+                <li className="mb-2">• استخدم "توليد مستطيل مغلق" للحصول على شكل مستطيل متوازي</li>
+                <li className="mb-2">• استخدم "توليد دائري مغلق" للحصول على شكل دائري تقريبي</li>
                 <li className="mb-2">• لنسخ من خرائط جوجل: انقر بزر الماوس الأيمن على الموقع → نسخ الإحداثيات</li>
-                <li className="mb-2">• يجب إدخال 5 نقاط على الأقل لتشكيل مضلع</li>
-                <li>• النقاط يجب أن تشكل مضلعاً مغلقاً حول المدرسة</li>
+                <li>• سيتم تعطيل زر الإضافة حتى يتم إغلاق المضلع بشكل صحيح</li>
               </ul>
             </div>
           </div>

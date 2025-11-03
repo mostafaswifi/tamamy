@@ -20,6 +20,10 @@ const AddSchool = () => {
     { x: "", y: "" }
   ]);
 
+  // State for center point and radius
+  const [centerPoint, setCenterPoint] = useState({ x: "", y: "" });
+  const [radius, setRadius] = useState(0.001); // حوالي 100 متر
+
   useEffect(() => {
     setPolygonPoints(
       points.filter(point => point.x && point.y).map(point => ({
@@ -35,12 +39,92 @@ const AddSchool = () => {
     setPoints(newPoints);
   };
 
+  // دالة لتوليد 5 نقاط حول نقطة مركزية
+  const generatePointsAroundCenter = () => {
+    if (!centerPoint.x || !centerPoint.y) {
+      Swal.fire({
+        title: 'بيانات ناقصة!',
+        text: 'يرجى إدخال النقطة المركزية أولاً',
+        icon: 'warning',
+        confirmButtonText: 'حسناً'
+      });
+      return;
+    }
+
+    const centerLat = parseFloat(centerPoint.x);
+    const centerLng = parseFloat(centerPoint.y);
+    const radiusKm = radius;
+    
+    const generatedPoints = [];
+    const radiusInDegrees = radiusKm / 111.32; // 111.32 كم لكل درجة
+
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * 2 * Math.PI) / 5;
+      
+      // حساب الإحداثيات بدقة 7 خانات عشرية
+      const lat = centerLat + (radiusInDegrees * Math.sin(angle));
+      const lng = centerLng + (radiusInDegrees * Math.cos(angle));
+      
+      generatedPoints.push({
+        x: lat.toFixed(7),
+        y: lng.toFixed(7)
+      });
+    }
+
+    setPoints(generatedPoints);
+    
+    Swal.fire({
+      title: 'تم التوليد!',
+      text: 'تم توليد 5 نقاط حول المركز بنجاح',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  };
+
+  // دالة لنسخ الإحداثيات من خرائط جوجل
+  const pasteFromGoogleMaps = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      const match = clipboardText.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+      
+      if (match) {
+        const lat = parseFloat(match[1]).toFixed(7);
+        const lng = parseFloat(match[2]).toFixed(7);
+        
+        setCenterPoint({ x: lat, y: lng });
+        
+        Swal.fire({
+          title: 'تم النسخ!',
+          text: 'تم استخراج الإحداثيات من الحافظة',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } else {
+        Swal.fire({
+          title: 'خطأ!',
+          text: 'لم يتم العثور على إحداثيات صحيحة في الحافظة',
+          icon: 'error',
+          confirmButtonText: 'حسناً'
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: 'خطأ!',
+        text: 'تعذر الوصول إلى الحافظة. يرجى نسخ الإحداثيات أولاً.',
+        icon: 'error',
+        confirmButtonText: 'حسناً'
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate all required fields
+    // التحقق من الحقول المطلوبة
     const requiredFields = [schoolName, ...points.flatMap(point => [point.x, point.y])];
-    const isValid = requiredFields.every(field => field.trim() !== "");
+    const isValid = requiredFields.every(field => field && field.trim() !== "");
     
     if (!isValid) {
       Swal.fire({
@@ -52,20 +136,30 @@ const AddSchool = () => {
       return;
     }
 
+    // التحقق من صحة تنسيق الإحداثيات
+    const coordinatesValid = points.every(point => {
+      const lat = parseFloat(point.x);
+      const lng = parseFloat(point.y);
+      return !isNaN(lat) && !isNaN(lng) && 
+             lat >= -90 && lat <= 90 && 
+             lng >= -180 && lng <= 180;
+    });
+
+    if (!coordinatesValid) {
+      Swal.fire({
+        title: 'إحداثيات غير صالحة!',
+        text: 'يرجى التأكد من صحة الإحداثيات المدخلة',
+        icon: 'error',
+        confirmButtonText: 'حسناً'
+      });
+      return;
+    }
+
     try {
       await addPlace(schoolName, polygonPoints);
       
-      // Reset form
-      setSchoolName("");
-      setPlaceId("");
-      setPoints([
-        { x: "", y: "" },
-        { x: "", y: "" },
-        { x: "", y: "" },
-        { x: "", y: "" },
-        { x: "", y: "" }
-      ]);
-      setPolygonPoints([]);
+      // إعادة تعيين النموذج
+      resetForm();
 
       Swal.fire({
         title: 'تمت الإضافة!',
@@ -74,6 +168,7 @@ const AddSchool = () => {
         confirmButtonText: 'تم'
       });
     } catch (error) {
+      console.error('Error adding school:', error);
       Swal.fire({
         title: 'خطأ!',
         text: 'حدث خطأ أثناء إضافة المدرسة',
@@ -93,6 +188,8 @@ const AddSchool = () => {
       { x: "", y: "" },
       { x: "", y: "" }
     ]);
+    setCenterPoint({ x: "", y: "" });
+    setRadius(0.001);
     setAdminPassword("");
     setFlag(false);
   };
@@ -190,6 +287,71 @@ const AddSchool = () => {
                   </div>
                 </div>
 
+                {/* Center Point Generator */}
+                <div className="card border-0 bg-light mb-4">
+                  <div className="card-body">
+                    <h5 className="fw-bold text-primary mb-3">مولد النقاط التلقائي</h5>
+                    <div className="row g-3">
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold text-dark">خط العرض (Latitude)</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={centerPoint.x}
+                          onChange={(e) => setCenterPoint({...centerPoint, x: e.target.value})}
+                          placeholder="24.7135517"
+                        />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold text-dark">خط الطول (Longitude)</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={centerPoint.y}
+                          onChange={(e) => setCenterPoint({...centerPoint, y: e.target.value})}
+                          placeholder="46.6752957"
+                        />
+                      </div>
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold text-dark">نصف القطر (كم)</label>
+                        <input
+                          type="number"
+                          step="0.001"
+                          min="0.001"
+                          max="1"
+                          className="form-control"
+                          value={radius}
+                          onChange={(e) => setRadius(parseFloat(e.target.value))}
+                          placeholder="0.001"
+                        />
+                      </div>
+                    </div>
+                    <div className="row mt-3">
+                      <div className="col-12">
+                        <div className="d-flex gap-2 flex-wrap">
+                          <button 
+                            type="button" 
+                            className="btn btn-success"
+                            onClick={generatePointsAroundCenter}
+                          >
+                            توليد النقاط تلقائياً
+                          </button>
+                          <button 
+                            type="button" 
+                            className="btn btn-outline-primary"
+                            onClick={pasteFromGoogleMaps}
+                          >
+                            نسخ من خرائط جوجل
+                          </button>
+                          <small className="text-muted align-self-center">
+                            نصف القطر الافتراضي: 0.001 كم (≈100 متر)
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Coordinates Section */}
                 <div className="mb-4">
                   <div className="d-flex justify-content-between align-items-center mb-3">
@@ -207,24 +369,24 @@ const AddSchool = () => {
                             </h6>
                             <div className="row g-2">
                               <div className="col-6">
-                                <label className="form-label small fw-semibold text-muted">الإحداثي X</label>
+                                <label className="form-label small fw-semibold text-muted">خط العرض</label>
                                 <input
                                   type="text"
                                   className="form-control"
                                   value={point.x}
                                   onChange={(e) => handlePointChange(index, 'x', e.target.value)}
-                                  placeholder={`X${index + 1}`}
+                                  placeholder="24.7135517"
                                   required
                                 />
                               </div>
                               <div className="col-6">
-                                <label className="form-label small fw-semibold text-muted">الإحداثي Y</label>
+                                <label className="form-label small fw-semibold text-muted">خط الطول</label>
                                 <input
                                   type="text"
                                   className="form-control"
                                   value={point.y}
                                   onChange={(e) => handlePointChange(index, 'y', e.target.value)}
-                                  placeholder={`Y${index + 1}`}
+                                  placeholder="46.6752957"
                                   required
                                 />
                               </div>
@@ -239,10 +401,11 @@ const AddSchool = () => {
                 {/* Action Buttons */}
                 <div className="row mt-4">
                   <div className="col-12">
-                    <div className="d-flex gap-3">
+                    <div className="d-flex gap-3 flex-wrap">
                       <button 
                         type="submit" 
                         className="btn btn-primary btn-lg fw-bold px-5"
+                        disabled={polygonPoints.length !== 5}
                       >
                         إضافة المدرسة
                       </button>
@@ -287,10 +450,10 @@ const AddSchool = () => {
             <div className="card-body">
               <h6 className="card-title fw-bold mb-3">تعليمات هامة:</h6>
               <ul className="list-unstyled mb-0">
-                <li className="mb-2">• تأكد من صحة الإحداثيات الجغرافية المدخلة</li>
+                <li className="mb-2">• يمكنك إدخال الإحداثيات يدوياً أو استخدام المولد التلقائي</li>
+                <li className="mb-2">• لنسخ من خرائط جوجل: انقر بزر الماوس الأيمن على الموقع → نسخ الإحداثيات</li>
                 <li className="mb-2">• يجب إدخال 5 نقاط على الأقل لتشكيل مضلع</li>
-                <li className="mb-2">• النقاط يجب أن تشكل مضلعاً مغلقاً حول المدرسة</li>
-                <li>• يمكنك الحصول على الإحداثيات من خرائط جوجل أو أنظمة GPS</li>
+                <li>• النقاط يجب أن تشكل مضلعاً مغلقاً حول المدرسة</li>
               </ul>
             </div>
           </div>

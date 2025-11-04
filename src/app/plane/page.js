@@ -22,7 +22,7 @@ const AddSchool = () => {
 
   // State for center point and radius
   const [centerPoint, setCenterPoint] = useState({ x: "", y: "" });
-  const [radius, setRadius] = useState(0.003); // حوالي 100 متر
+  const [radius, setRadius] = useState(0.1); // حوالي 100 متر
 
   useEffect(() => {
     setPolygonPoints(
@@ -442,7 +442,7 @@ const AddSchool = () => {
                             نسخ من خرائط جوجل
                           </button>
                           <small className="text-muted align-self-center">
-                            نصف القطر الافتراضي: 0.001 كم (≈100 متر)
+                            نصف القطر الافتراضي: 0.1 كم (≈100 متر)
                           </small>
                         </div>
                       </div>

@@ -276,7 +276,7 @@ const AddSchool = () => {
       { x: "", y: "" }
     ]);
     setCenterPoint({ x: "", y: "" });
-    setRadius(0.001);
+    setRadius(0.1);
     setAdminPassword("");
     setFlag(false);
   };

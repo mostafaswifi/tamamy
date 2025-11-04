@@ -407,13 +407,13 @@ const AddSchool = () => {
                         <label className="form-label fw-semibold text-dark">نصف القطر (كم)</label>
                         <input
                           type="number"
-                          step="0.001"
-                          min="0.001"
+                          step="0.1"
+                          min="0.1"
                           max="1"
                           className="form-control"
                           value={radius}
                           onChange={(e) => setRadius(parseFloat(e.target.value))}
-                          placeholder="0.001"
+                          placeholder="0.1"
                         />
                       </div>
                     </div>

@@ -22,7 +22,7 @@ const AddSchool = () => {
 
   // State for center point and radius
   const [centerPoint, setCenterPoint] = useState({ x: "", y: "" });
-  const [radius, setRadius] = useState(0.001); // حوالي 100 متر
+  const [radius, setRadius] = useState(0.003); // حوالي 100 متر
 
   useEffect(() => {
     setPolygonPoints(

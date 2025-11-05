@@ -27,7 +27,7 @@ const AddEmploye = () => {
       // Normalize Arabic characters
       .replace(/[أإآٱ]/g, 'ا')           // All Alef variations → ا
       .replace(/ة/g, 'ه')               // Teh Marbuta → ه
-      .replace(/ى/g, 'ي')               // REVERSED: Alef Maqsura → Yeh (ى → ي)
+      .replace(/ى/g, 'ي')               // Alef Maqsura → Yeh (ى → ي)
       .replace(/[ًٌٍَُِّْ~ٰ]/g, '')      // Remove all diacritics
       .replace(/[ؤ]/g, 'و')             // Waw with Hamza → و
       .replace(/[ئ]/g, 'ء')             // Yeh with Hamza → ء
@@ -39,11 +39,7 @@ const AddEmploye = () => {
 
   // Handle input change with auto-normalization
   const handleInputChange = (field, value) => {
-    // Normalize text fields (except date)
-    if (field !== 'hireDate') {
-      value = normalizeArabicText(value);
-    }
-    
+    // Don't normalize here - let user type freely, only normalize on submit
     setEmployee(prev => ({
       ...prev,
       [field]: value
@@ -74,12 +70,13 @@ const AddEmploye = () => {
       return;
     }
 
-    // Additional validation for Arabic text
-    if (!/^[\u0600-\u06FF\s]+$/.test(employeeName)) {
+    // UPDATED: Better Arabic text validation that allows spaces
+    const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
+    if (!arabicWithSpacesRegex.test(employeeName)) {
       Swal.fire({
         icon: "error",
         title: "اسم غير صالح",
-        text: "يرجى إدخال اسم صحيح باللغة العربية",
+        text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
         confirmButtonText: "حاول مرة أخرى",
       });
       return;
@@ -143,22 +140,6 @@ const AddEmploye = () => {
     setPassword("");
   };
 
-  // Test function to verify normalization
-  const testNormalization = () => {
-    const testCases = [
-      "  مدرسةُ أحمدَ الإبتدائيةِ  ",
-      "أستاذى الكريم",  // Now will convert ى to ي
-      "  كود   الموجه    ",  // Multiple spaces will be reduced
-      "مادة الرياضيات",
-      "إدارة التعليم",
-      "موجه أول"
-    ];
-    
-    testCases.forEach(test => {
-      console.log(`Input: "${test}" → Output: "${normalizeArabicText(test)}"`);
-    });
-  };
-
   return (
     <div className="bg-light min-vh-100" dir="rtl">
       {/* Header */}
@@ -174,16 +155,6 @@ const AddEmploye = () => {
               <p className="text-muted small mb-0">إضافة وتعديل بيانات الموجهين</p>
             </div>
           </div>
-          {/* Optional: Add normalization test button for development */}
-          {process.env.NODE_ENV === 'development' && (
-            <button 
-              className="btn btn-sm btn-outline-info"
-              onClick={testNormalization}
-              type="button"
-            >
-              اختبار التطبيع
-            </button>
-          )}
         </div>
       </nav>
 
@@ -253,15 +224,14 @@ const AddEmploye = () => {
                       type="text"
                       className="form-control form-control-lg"
                       id="employeeName"
-                      placeholder="أدخل اسم الموجه بالكامل"
+                      placeholder="أدخل اسم الموجه بالكامل (يمكن استخدام المسافات)"
                       value={employee.employeeName}
                       onChange={(e) => handleInputChange('employeeName', e.target.value)}
                       required
-                      pattern="[\u0600-\u06FF\s]+"
-                      title="يرجى إدخال اسم صحيح باللغة العربية"
+                      // REMOVED the restrictive pattern attribute
                     />
                     <div className="form-text text-muted">
-                      سيتم تطبيع النص تلقائياً: ة→ه, أإآ→ا, ى→ي
+                      يمكنك استخدام المسافات بين الكلمات - سيتم تطبيع النص تلقائياً عند الحفظ
                     </div>
                   </div>
 
@@ -293,13 +263,14 @@ const AddEmploye = () => {
                       type="text"
                       className="form-control form-control-lg"
                       id="department"
-                      placeholder="أدخل اسم المادة"
+                      placeholder="أدخل اسم المادة (يمكن استخدام المسافات)"
                       value={employee.department}
                       onChange={(e) => handleInputChange('department', e.target.value)}
                       required
+                      // REMOVED the restrictive pattern attribute
                     />
                     <div className="form-text text-muted">
-                      مثال: &quot;الرياضيات&quot; → &quot;الرياضيات&quot;
+                      مثال: &quot;اللغة العربية&quot; → &quot;اللغه العربيه&quot;
                     </div>
                   </div>
 
@@ -405,34 +376,9 @@ const AddEmploye = () => {
                       الحقول marked with <span className="text-danger">*</span> إلزامية
                     </span>
                     <span className="badge bg-success fs-6">
-                      ✓ تطبيع النص العربي مفعل
+                      ✓ المسافات مسموحة بين الكلمات
                     </span>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Normalization Info */}
-        {isAuthenticated && (
-          <div className="card border-0 bg-light mt-4">
-            <div className="card-body">
-              <h6 className="card-title fw-bold text-primary mb-3">معلومات عن تطبيع النص العربي:</h6>
-              <div className="row">
-                <div className="col-md-6">
-                  <ul className="list-unstyled mb-0">
-                    <li className="mb-2">• <strong>ة → ه</strong> : تحويل التاء المربوطة إلى هاء</li>
-                    <li className="mb-2">• <strong>أ إ آ → ا</strong> : توحيد أشكال الألف</li>
-                    <li className="mb-2">• <strong>ى → ي</strong> : تحويل الألف المقصورة إلى ياء</li>
-                  </ul>
-                </div>
-                <div className="col-md-6">
-                  <ul className="list-unstyled mb-0">
-                    <li className="mb-2">• <strong>إزالة التشكيل</strong> : حذف الحركات والتنوين</li>
-                    <li className="mb-2">• <strong>مسافات مزدوجة → مسافة واحدة</strong></li>
-                    <li className="mb-2">• <strong>قص المسافات</strong> : إزالة المسافات من البداية والنهاية</li>
-                  </ul>
                 </div>
               </div>
             </div>

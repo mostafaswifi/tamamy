@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useGeolocated } from "react-geolocated";
 import addSignature from '@/lib/addSignature'
 import employeeLogIn from '@/lib/emloyeeLogIn'
@@ -9,9 +9,11 @@ import signedIn from '../../../public/loggedIn.jpg'
 
 const SignedInInfo = () => {
   const params = useParams()
+  const router = useRouter()
   const [employee, setEmployee] = useState(null)
   const [submissionStatus, setSubmissionStatus] = useState('idle') // 'idle', 'submitting', 'success', 'error'
   const [hasSubmitted, setHasSubmitted] = useState(false) // لمنع الإرسال المتكرر
+  const [redirectCountdown, setRedirectCountdown] = useState(3) // العد التنازلي لإعادة التوجيه
   const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
     positionOptions: {
       enableHighAccuracy: true,
@@ -88,6 +90,36 @@ const SignedInInfo = () => {
     }
   }, [employeeData, submissionStatus, hasSubmitted])
 
+  // إعادة التوجيه إلى الصفحة الرئيسية
+  const redirectToMainPage = useCallback(() => {
+    console.log('إعادة التوجيه إلى الصفحة الرئيسية...')
+    router.replace('/') // أو المسار الذي تريده للصفحة الرئيسية
+  }, [router])
+
+  // بدء العد التنازلي عند نجاح التسجيل
+  useEffect(() => {
+    let countdownInterval
+    
+    if (submissionStatus === 'success') {
+      countdownInterval = setInterval(() => {
+        setRedirectCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval)
+            redirectToMainPage()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
+
+    return () => {
+      if (countdownInterval) {
+        clearInterval(countdownInterval)
+      }
+    }
+  }, [submissionStatus, redirectToMainPage])
+
   // Initial data loading
   useEffect(() => {
     if (employeeData.employeeId) {
@@ -122,6 +154,11 @@ const SignedInInfo = () => {
     }
   }, [isGeolocationAvailable, isGeolocationEnabled])
 
+  // زر العودة اليدوي
+  const handleManualRedirect = () => {
+    redirectToMainPage()
+  }
+
   if (submissionStatus === 'error') {
     return (
       <div className='container mt-5 d-flex justify-content-center align-items-center min-vh-50'>
@@ -132,6 +169,14 @@ const SignedInInfo = () => {
             {!coords && ' - الإحداثيات غير متاحة'}
             {!employeeData.employeeId && ' - بيانات الموظف غير متاحة'}
           </small>
+          <div className='mt-3'>
+            <button 
+              className='btn btn-primary'
+              onClick={handleManualRedirect}
+            >
+              العودة إلى الصفحة الرئيسية
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -208,9 +253,35 @@ const SignedInInfo = () => {
         )}
 
         {submissionStatus === 'success' && (
-          <div className="mt-3 text-success">
-            <i className="bi bi-check-circle-fill me-2"></i>
-            تم حفظ البيانات بنجاح في النظام
+          <div className="mt-4">
+            <div className="alert alert-success d-flex align-items-center">
+              <i className="bi bi-check-circle-fill me-2 fs-5"></i>
+              <div>
+                <strong>تم حفظ البيانات بنجاح في النظام</strong>
+                <div className="mt-2">
+                  <small className="text-muted">
+                    سيتم توجيهك تلقائياً إلى الصفحة الرئيسية خلال {redirectCountdown} ثانية
+                  </small>
+                </div>
+              </div>
+            </div>
+            
+            {/* شريط التقدم */}
+            <div className="progress mb-3" style={{height: '6px'}}>
+              <div 
+                className="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                style={{width: `${((3 - redirectCountdown) / 3) * 100}%`}}
+              ></div>
+            </div>
+            
+            {/* زر العودة الفوري */}
+            <button 
+              className="btn btn-outline-primary btn-sm"
+              onClick={handleManualRedirect}
+            >
+              <i className="bi bi-arrow-left me-1"></i>
+              العودة الآن
+            </button>
           </div>
         )}
       </div>

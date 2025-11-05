@@ -46,12 +46,35 @@ export default function AttendanceSystem() {
   // Memoized values
   const images = useMemo(() => [erp1, erp2, erp3, erp4, erp5], []);
 
+  // Arabic text normalization function
+  const normalizeArabicText = (text) => {
+    if (!text || typeof text !== 'string') return '';
+    
+    return text
+      // Normalize Arabic characters
+      .replace(/[أإآٱ]/g, 'ا')           // All Alef variations → ا
+      .replace(/ة/g, 'ه')               // Teh Marbuta → ه
+      .replace(/ى/g, 'ي')               // Alef Maqsura → Yeh (ى → ي)
+      .replace(/[ًٌٍَُِّْ~ٰ]/g, '')      // Remove all diacritics
+      .replace(/[ؤ]/g, 'و')             // Waw with Hamza → و
+      .replace(/[ئ]/g, 'ء')             // Yeh with Hamza → ء
+      // Normalize spaces - ONLY replace 2+ spaces with single space
+      .replace(/\s{2,}/g, ' ')          // ONLY multiple spaces → single space
+      .replace(/\u200B/g, '')           // Remove zero-width spaces
+      .trim();                          // Remove spaces from start and end
+  };
+
   // Fetch user data once on mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const userData = await employeeLogIn();
-        setUser(userData);
+        // Normalize employee names in user data for consistent matching
+        const normalizedUserData = userData.map(user => ({
+          ...user,
+          normalizedName: normalizeArabicText(user.employeeName?.toLowerCase() || '')
+        }));
+        setUser(normalizedUserData);
       } catch (error) {
         setError("فشل في تحميل بيانات المستخدمين");
       }
@@ -138,6 +161,21 @@ export default function AttendanceSystem() {
     });
   }, []);
 
+  // Handle input change with auto-normalization for username
+  const handleInputChange = (e) => {
+    const { id, value } = e.target;
+    
+    if (id === 'username') {
+      // Apply normalization only to username field
+      const normalizedValue = normalizeArabicText(value);
+      setLogIn(prev => ({ ...prev, [id]: normalizedValue }));
+    } else {
+      setLogIn(prev => ({ ...prev, [id]: value }));
+    }
+    
+    setError(""); // Clear error when user types
+  };
+
   // Handle login submission
   const handleLogin = useCallback(async (e) => {
     e.preventDefault();
@@ -151,7 +189,10 @@ export default function AttendanceSystem() {
 
     try {
       // Validate inputs
-      if (!logIn.username.trim() || !logIn.password.trim()) {
+      const normalizedUsername = normalizeArabicText(logIn.username.trim());
+      const password = logIn.password.trim();
+      
+      if (!normalizedUsername || !password) {
         setError('خطأ في اسم المستخدم أو كلمة المرور');
         return;
       }
@@ -161,10 +202,10 @@ export default function AttendanceSystem() {
         return;
       }
 
-      // Find matching user
-      const matchedUser = user.find(
-        u => u.employeeName?.toLowerCase() === logIn.username.toLowerCase() && 
-             u.employeeCode === logIn.password
+      // Enhanced user matching with normalized names
+      const matchedUser = user.find(u => 
+        u.normalizedName === normalizedUsername.toLowerCase() && 
+        u.employeeCode === password
       );
 
       if (!matchedUser) {
@@ -199,12 +240,6 @@ export default function AttendanceSystem() {
       setIsGettingLocation(false);
     }
   }, [isSubmitting, isGettingLocation, logIn, user, isGeolocationAvailable, isGeolocationEnabled, router, setLocation, setDateTime, getHighAccuracyLocation]);
-
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setLogIn(prev => ({ ...prev, [id]: value }));
-    setError(""); // Clear error when user types
-  };
 
   // حالة زر التسجيل
   const isLoginDisabled = isSubmitting || 
@@ -309,10 +344,13 @@ export default function AttendanceSystem() {
                       value={logIn.username} 
                       onChange={handleInputChange} 
                       className="form-control form-control-lg" 
-                      placeholder="أدخل اسم المستخدم"
+                      placeholder="أدخل اسم المستخدم (سيتم تطبيع النص العربي تلقائياً)"
                       disabled={isSubmitting || isGettingLocation}
                       required
                     />
+                    <div className="form-text text-muted">
+                      يمكنك استخدام المسافات بين الكلمات - سيتم تطبيع النص العربي تلقائياً
+                    </div>
                   </div>
                   
                   <div className="mb-4">
@@ -365,7 +403,6 @@ export default function AttendanceSystem() {
             </div>
           </div>
 
-          {/* باقي الكود بدون تغيير */}
           {/* Info Section */}
           <div className="col-lg-6">
             <div className="card shadow-lg border-0 h-100">
@@ -416,13 +453,23 @@ export default function AttendanceSystem() {
                       </div>
                     </div>
                   </div>
+
+                  {/* New Feature Card */}
+                  <div className="col-12">
+                    <div className="d-flex align-items-center p-3 bg-light rounded-3">
+                      <i className="bi bi-text-left text-info fs-4 me-3"></i>
+                      <div>
+                        <h6 className="fw-bold mb-1">تطبيع النص العربي</h6>
+                        <p className="text-muted small mb-0">تحسين مطابقة الأسماء العربية تلقائياً</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* باقي الكود بدون تغيير */}
         {/* Quick Stats */}
         <div className="row mt-5">
           <div className="col-md-3">
@@ -444,8 +491,8 @@ export default function AttendanceSystem() {
           <div className="col-md-3">
             <div className="card border-0 bg-info text-white text-center">
               <div className="card-body py-3">
-                <div className="h4 fw-bold mb-1">تحقق</div>
-                <div className="small">جغرافي آمن</div>
+                <div className="h4 fw-bold mb-1">تطبيع</div>
+                <div className="small">النص العربي</div>
               </div>
             </div>
           </div>

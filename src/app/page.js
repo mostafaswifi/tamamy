@@ -20,17 +20,28 @@ import sign from '../../public/sign.jpg';
 export default function AttendanceSystem() {
   // State management
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [user, setUser] = useState([]);
   const [logIn, setLogIn] = useState({
     username: "",
     password: "",
   });
   const [error, setError] = useState("");
+  const [locationAccuracy, setLocationAccuracy] = useState(null);
+  const [highAccuracyCoords, setHighAccuracyCoords] = useState(null);
 
   // Hooks and utilities
   const router = useRouter();
   const { setLocation, setDateTime } = useLocationDateTimeStore();
-  const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated();
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } = useGeolocated({
+    positionOptions: {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    },
+    watchPosition: false,
+    userDecisionTimeout: 10000,
+  });
 
   // Memoized values
   const images = useMemo(() => [erp1, erp2, erp3, erp4, erp5], []);
@@ -49,13 +60,94 @@ export default function AttendanceSystem() {
     fetchUserData();
   }, []);
 
+  // دالة للحصول على إحداثيات عالية الدقة
+  const getHighAccuracyLocation = useCallback(async () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('الموقع الجغرافي غير مدعوم في هذا المتصفح'));
+        return;
+      }
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 20000, // 20 ثانية
+        maximumAge: 0 // لا تستخدم بيانات قديمة
+      };
+
+      let bestAccuracy = Infinity;
+      let bestCoords = null;
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          attempts++;
+          const { latitude, longitude, accuracy } = position.coords;
+          
+          console.log(`محاولة ${attempts}: الدقة ${accuracy} متر`);
+          
+          // حفظ أفضل إحداثيات
+          if (accuracy < bestAccuracy) {
+            bestAccuracy = accuracy;
+            bestCoords = { latitude, longitude, accuracy };
+            setLocationAccuracy(accuracy);
+            setHighAccuracyCoords({ latitude, longitude });
+          }
+
+          // إذا وصلنا لدقة ممتازة (أقل من 10 متر) أو انتهت المحاولات
+          if (accuracy <= 10 || attempts >= maxAttempts) {
+            navigator.geolocation.clearWatch(watchId);
+            
+            if (bestCoords && bestCoords.accuracy <= 50) { // دقة مقبولة (50 متر أو أفضل)
+              resolve(bestCoords);
+            } else {
+              reject(new Error(`دقة الموقع غير كافية: ${Math.round(bestAccuracy)} متر`));
+            }
+          }
+        },
+        (error) => {
+          navigator.geolocation.clearWatch(watchId);
+          let errorMessage = 'فشل في الحصول على الموقع';
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'تم رفض الإذن للوصول إلى الموقع';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'معلومات الموقع غير متاحة';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'انتهت مهلة الحصول على الموقع';
+              break;
+          }
+          
+          reject(new Error(errorMessage));
+        },
+        options
+      );
+
+      // إيقاف تلقائي بعد 25 ثانية
+      setTimeout(() => {
+        navigator.geolocation.clearWatch(watchId);
+        if (bestCoords && bestCoords.accuracy <= 50) {
+          resolve(bestCoords);
+        } else {
+          reject(new Error('انتهت مهلة تحسين دقة الموقع'));
+        }
+      }, 25000);
+    });
+  }, []);
+
   // Handle login submission
   const handleLogin = useCallback(async (e) => {
     e.preventDefault();
     
-    if (isSubmitting) return;
+    if (isSubmitting || isGettingLocation) return;
+    
     setIsSubmitting(true);
+    setIsGettingLocation(true);
     setError("");
+    setLocationAccuracy(null);
 
     try {
       // Validate inputs
@@ -64,7 +156,7 @@ export default function AttendanceSystem() {
         return;
       }
 
-      if (!isGeolocationAvailable || !isGeolocationEnabled || !coords) {
+      if (!isGeolocationAvailable || !isGeolocationEnabled) {
         setError('يجب تفعيل خدمة الموقع الجغرافي');
         return;
       }
@@ -80,26 +172,47 @@ export default function AttendanceSystem() {
         return;
       }
 
+      // الحصول على إحداثيات عالية الدقة
+      setError('جاري تحديد موقعك بدقة...');
+      const highAccuracyLocation = await getHighAccuracyLocation();
+      
+      console.log('الإحداثيات عالية الدقة:', highAccuracyLocation);
+
+      // التحقق النهائي من الدقة
+      if (highAccuracyLocation.accuracy > 50) {
+        setError(`دقة الموقع غير كافية (${Math.round(highAccuracyLocation.accuracy)} متر). يرجى المحاولة في مكان مفتوح`);
+        return;
+      }
+
       // Update location and time
-      setLocation(coords.latitude, coords.longitude);
+      setLocation(highAccuracyLocation.latitude, highAccuracyLocation.longitude);
       setDateTime(format(new Date(), 'dd/MM/yyyy HH:mm:ss'));
       
       // Navigate to signed in page
-      router.replace(`/signedInInfo/${matchedUser.id}/${coords.latitude}/${coords.longitude}`);
+      router.replace(`/signedInInfo/${matchedUser.id}/${highAccuracyLocation.latitude}/${highAccuracyLocation.longitude}`);
       
     } catch (error) {
       console.error("Login error:", error);
-      setError('حدث خطأ أثناء محاولة تسجيل الدخول');
+      setError(error.message || 'حدث خطأ أثناء محاولة تسجيل الدخول');
     } finally {
       setIsSubmitting(false);
+      setIsGettingLocation(false);
     }
-  }, [isSubmitting, logIn, user, coords, isGeolocationAvailable, isGeolocationEnabled, router, setLocation, setDateTime]);
+  }, [isSubmitting, isGettingLocation, logIn, user, isGeolocationAvailable, isGeolocationEnabled, router, setLocation, setDateTime, getHighAccuracyLocation]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     setLogIn(prev => ({ ...prev, [id]: value }));
     setError(""); // Clear error when user types
   };
+
+  // حالة زر التسجيل
+  const isLoginDisabled = isSubmitting || 
+                         isGettingLocation || 
+                         !isGeolocationAvailable || 
+                         !isGeolocationEnabled ||
+                         !logIn.username.trim() || 
+                         !logIn.password.trim();
 
   return (
     <div className="bg-light min-vh-100" dir="rtl">
@@ -140,23 +253,51 @@ export default function AttendanceSystem() {
               <div className="card-body p-4">
                 <form onSubmit={handleLogin}>
                   {error && (
-                    <div className="alert alert-danger d-flex align-items-center" role="alert">
-                      <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div className={`alert ${error.includes('جاري') ? 'alert-info' : 'alert-danger'} d-flex align-items-center`} role="alert">
+                      <i className={`bi ${error.includes('جاري') ? 'bi-info-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
                       <div>{error}</div>
                     </div>
                   )}
 
                   {/* Location Status */}
-                  <div className="alert alert-info d-flex align-items-center mb-4" role="alert">
-                    <i className="bi bi-geo-alt-fill me-2"></i>
-                    <div>
+                  <div className="alert alert-info mb-4" role="alert">
+                    <div className="d-flex align-items-center mb-2">
+                      <i className="bi bi-geo-alt-fill me-2"></i>
                       <strong>حالة الموقع:</strong> 
+                    </div>
+                    <div className="small">
                       {isGeolocationAvailable && isGeolocationEnabled ? 
-                        " ✓ جاهز لتسجيل الموقع" : 
-                        " ⚠️ يرجى تفعيل خدمة الموقع"
+                        "✓ خدمة الموقع مفعلة" : 
+                        "⚠️ يرجى تفعيل خدمة الموقع"
                       }
+                      {locationAccuracy && (
+                        <div className="mt-1">
+                          📍 الدقة الحالية: <strong>{Math.round(locationAccuracy)} متر</strong>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Location Progress */}
+                  {isGettingLocation && (
+                    <div className="alert alert-warning mb-4">
+                      <div className="d-flex align-items-center">
+                        <div className="spinner-border spinner-border-sm me-2" role="status">
+                          <span className="visually-hidden">جاري التحميل...</span>
+                        </div>
+                        <div>
+                          <strong>جاري تحسين دقة الموقع...</strong>
+                          <div className="small">يرجى الانتظار للحصول على أفضل دقة</div>
+                        </div>
+                      </div>
+                      <div className="progress mt-2" style={{height: '6px'}}>
+                        <div 
+                          className="progress-bar progress-bar-striped progress-bar-animated" 
+                          style={{width: '100%'}}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mb-3">
                     <label htmlFor="username" className="form-label fw-semibold text-dark">
@@ -169,7 +310,7 @@ export default function AttendanceSystem() {
                       onChange={handleInputChange} 
                       className="form-control form-control-lg" 
                       placeholder="أدخل اسم المستخدم"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isGettingLocation}
                       required
                     />
                   </div>
@@ -185,7 +326,7 @@ export default function AttendanceSystem() {
                       onChange={handleInputChange} 
                       className="form-control form-control-lg" 
                       placeholder="أدخل كلمة المرور"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isGettingLocation}
                       required
                     />
                   </div>
@@ -193,9 +334,14 @@ export default function AttendanceSystem() {
                   <button 
                     className="btn btn-primary btn-lg w-100 fw-bold py-3"
                     type="submit"
-                    disabled={isSubmitting || !isGeolocationAvailable || !isGeolocationEnabled}
+                    disabled={isLoginDisabled}
                   >
-                    {isSubmitting ? (
+                    {isGettingLocation ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        جاري تحديد الموقع...
+                      </>
+                    ) : isSubmitting ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                         جاري تسجيل الحضور...
@@ -207,11 +353,19 @@ export default function AttendanceSystem() {
                       </>
                     )}
                   </button>
+
+                  {/* Tips */}
+                  <div className="mt-3">
+                    <small className="text-muted">
+                      💡 للحصول على أفضل دقة: تأكد من تفعيل GPS وكونك في مكان مفتوح
+                    </small>
+                  </div>
                 </form>
               </div>
             </div>
           </div>
 
+          {/* باقي الكود بدون تغيير */}
           {/* Info Section */}
           <div className="col-lg-6">
             <div className="card shadow-lg border-0 h-100">
@@ -237,8 +391,8 @@ export default function AttendanceSystem() {
                     <div className="d-flex align-items-center p-3 bg-light rounded-3">
                       <i className="bi bi-geo-fill text-primary fs-4 me-3"></i>
                       <div>
-                        <h6 className="fw-bold mb-1">تسجيل جغرافي</h6>
-                        <p className="text-muted small mb-0">تسجيل الموقع الجغرافي الفعلي للحضور</p>
+                        <h6 className="fw-bold mb-1">تسجيل جغرافي دقيق</h6>
+                        <p className="text-muted small mb-0">تحقق من الموقع بدقة تصل إلى 10 متر</p>
                       </div>
                     </div>
                   </div>
@@ -257,8 +411,8 @@ export default function AttendanceSystem() {
                     <div className="d-flex align-items-center p-3 bg-light rounded-3">
                       <i className="bi bi-shield-check-fill text-warning fs-4 me-3"></i>
                       <div>
-                        <h6 className="fw-bold mb-1">آمن ومؤمن</h6>
-                        <p className="text-muted small mb-0">نظام آمن لحماية بيانات الحضور</p>
+                        <h6 className="fw-bold mb-1">تحقق جغرافي آمن</h6>
+                        <p className="text-muted small mb-0">ضمان دقة الموقع قبل التسجيل</p>
                       </div>
                     </div>
                   </div>
@@ -268,6 +422,7 @@ export default function AttendanceSystem() {
           </div>
         </div>
 
+        {/* باقي الكود بدون تغيير */}
         {/* Quick Stats */}
         <div className="row mt-5">
           <div className="col-md-3">
@@ -281,16 +436,16 @@ export default function AttendanceSystem() {
           <div className="col-md-3">
             <div className="card border-0 bg-success text-white text-center">
               <div className="card-body py-3">
-                <div className="h4 fw-bold mb-1">نظام</div>
-                <div className="small">تسجيل جغرافي</div>
+                <div className="h4 fw-bold mb-1">دقة</div>
+                <div className="small">تصل إلى 10 متر</div>
               </div>
             </div>
           </div>
           <div className="col-md-3">
             <div className="card border-0 bg-info text-white text-center">
               <div className="card-body py-3">
-                <div className="h4 fw-bold mb-1">24/7</div>
-                <div className="small">متاح دائمًا</div>
+                <div className="h4 fw-bold mb-1">تحقق</div>
+                <div className="small">جغرافي آمن</div>
               </div>
             </div>
           </div>

@@ -22,7 +22,7 @@ const AddSchool = () => {
 
   // State for center point and radius
   const [centerPoint, setCenterPoint] = useState({ x: "", y: "" });
-  const [radius, setRadius] = useState(0.1); // حوالي 100 متر
+  const [radius, setRadius] = useState(0.2); // حوالي 100 متر
 
   useEffect(() => {
     setPolygonPoints(
@@ -276,7 +276,7 @@ const AddSchool = () => {
       { x: "", y: "" }
     ]);
     setCenterPoint({ x: "", y: "" });
-    setRadius(0.1);
+    setRadius(0.2);
     setAdminPassword("");
     setFlag(false);
   };
@@ -407,13 +407,13 @@ const AddSchool = () => {
                         <label className="form-label fw-semibold text-dark">نصف القطر (كم)</label>
                         <input
                           type="number"
-                          step="0.1"
-                          min="0.1"
+                          step="0.2"
+                          min="0.2"
                           max="1"
                           className="form-control"
                           value={radius}
                           onChange={(e) => setRadius(parseFloat(e.target.value))}
-                          placeholder="0.1"
+                          placeholder="0.2"
                         />
                       </div>
                     </div>
@@ -442,7 +442,7 @@ const AddSchool = () => {
                             نسخ من خرائط جوجل
                           </button>
                           <small className="text-muted align-self-center">
-                            نصف القطر الافتراضي: 0.1 كم (≈100 متر)
+                            نصف القطر الافتراضي: 0.2 كم (≈100 متر)
                           </small>
                         </div>
                       </div>

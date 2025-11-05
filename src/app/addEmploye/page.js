@@ -19,7 +19,7 @@ const AddEmploye = () => {
 
   const router = useRouter();
 
-  // Comprehensive Arabic text normalization function
+  // Updated Arabic text normalization function
   const normalizeArabicText = (text) => {
     if (!text || typeof text !== 'string') return '';
     
@@ -27,12 +27,12 @@ const AddEmploye = () => {
       // Normalize Arabic characters
       .replace(/[أإآٱ]/g, 'ا')           // All Alef variations → ا
       .replace(/ة/g, 'ه')               // Teh Marbuta → ه
-      .replace(/ي/g, 'ى')               // Yeh → ى
+      .replace(/ى/g, 'ي')               // REVERSED: Alef Maqsura → Yeh (ى → ي)
       .replace(/[ًٌٍَُِّْ~ٰ]/g, '')      // Remove all diacritics
       .replace(/[ؤ]/g, 'و')             // Waw with Hamza → و
       .replace(/[ئ]/g, 'ء')             // Yeh with Hamza → ء
-      // Normalize spaces
-      .replace(/\s+/g, ' ')             // Multiple spaces → single space
+      // Normalize spaces - ONLY replace 2+ spaces with single space
+      .replace(/\s{2,}/g, ' ')          // ONLY multiple spaces → single space
       .replace(/\u200B/g, '')           // Remove zero-width spaces
       .trim();                          // Remove spaces from start and end
   };
@@ -143,12 +143,12 @@ const AddEmploye = () => {
     setPassword("");
   };
 
-  // Test function to verify normalization (optional - for development)
+  // Test function to verify normalization
   const testNormalization = () => {
     const testCases = [
       "  مدرسةُ أحمدَ الإبتدائيةِ  ",
-      "أستاذي الكريم",
-      "  كود   الموجه    ",
+      "أستاذى الكريم",  // Now will convert ى to ي
+      "  كود   الموجه    ",  // Multiple spaces will be reduced
       "مادة الرياضيات",
       "إدارة التعليم",
       "موجه أول"
@@ -261,7 +261,7 @@ const AddEmploye = () => {
                       title="يرجى إدخال اسم صحيح باللغة العربية"
                     />
                     <div className="form-text text-muted">
-                      سيتم تطبيع النص تلقائياً: ة→ه, أإآ→ا, ي→ى
+                      سيتم تطبيع النص تلقائياً: ة→ه, أإآ→ا, ى→ي
                     </div>
                   </div>
 
@@ -280,7 +280,7 @@ const AddEmploye = () => {
                       required
                     />
                     <div className="form-text text-muted">
-                      سيتم إزالة المسافات الزائدة وتطبيع النص
+                      المسافات المزدوجة → مسافة واحدة
                     </div>
                   </div>
 
@@ -414,44 +414,6 @@ const AddEmploye = () => {
           </div>
         )}
 
-        {/* Quick Stats */}
-        {isAuthenticated && (
-          <div className="row mt-4">
-            <div className="col-md-3">
-              <div className="card border-0 bg-primary text-white">
-                <div className="card-body text-center py-4">
-                  <div className="h4 fw-bold mb-2">تطبيع</div>
-                  <div className="small">النص العربي</div>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card border-0 bg-success text-white">
-                <div className="card-body text-center py-4">
-                  <div className="h4 fw-bold mb-2">إضافة</div>
-                  <div className="small">موجه جديد</div>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card border-0 bg-info text-white">
-                <div className="card-body text-center py-4">
-                  <div className="h4 fw-bold mb-2">تعديل</div>
-                  <div className="small">بيانات موجودة</div>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="card border-0 bg-warning text-white">
-                <div className="card-body text-center py-4">
-                  <div className="h4 fw-bold mb-2">إدارة</div>
-                  <div className="small">جميع الموجهين</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Normalization Info */}
         {isAuthenticated && (
           <div className="card border-0 bg-light mt-4">
@@ -462,14 +424,14 @@ const AddEmploye = () => {
                   <ul className="list-unstyled mb-0">
                     <li className="mb-2">• <strong>ة → ه</strong> : تحويل التاء المربوطة إلى هاء</li>
                     <li className="mb-2">• <strong>أ إ آ → ا</strong> : توحيد أشكال الألف</li>
-                    <li className="mb-2">• <strong>ي → ى</strong> : تحويل الياء إلى الألف المقصورة</li>
+                    <li className="mb-2">• <strong>ى → ي</strong> : تحويل الألف المقصورة إلى ياء</li>
                   </ul>
                 </div>
                 <div className="col-md-6">
                   <ul className="list-unstyled mb-0">
                     <li className="mb-2">• <strong>إزالة التشكيل</strong> : حذف الحركات والتنوين</li>
-                    <li className="mb-2">• <strong>مسافات</strong> : إزالة المسافات الزائدة</li>
-                    <li className="mb-2">• <strong>قص</strong> : إزالة المسافات من البداية والنهاية</li>
+                    <li className="mb-2">• <strong>مسافات مزدوجة → مسافة واحدة</strong></li>
+                    <li className="mb-2">• <strong>قص المسافات</strong> : إزالة المسافات من البداية والنهاية</li>
                   </ul>
                 </div>
               </div>

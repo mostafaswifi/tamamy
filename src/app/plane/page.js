@@ -10,6 +10,9 @@ const AddSchool = () => {
   const [schoolName, setSchoolName] = useState("");
   const [placeId, setPlaceId] = useState("");
   const [polygonPoints, setPolygonPoints] = useState([]);
+  const [isGPSReady, setIsGPSReady] = useState(false);
+  const [watchId, setWatchId] = useState(null);
+  const [locationStatus, setLocationStatus] = useState('idle'); // idle, loading, accurate, inaccurate
 
   // State for all points
   const [points, setPoints] = useState([
@@ -22,7 +25,7 @@ const AddSchool = () => {
 
   // State for center point and radius
   const [centerPoint, setCenterPoint] = useState({ x: "", y: "" });
-  const [radius, setRadius] = useState(0.2); // حوالي 100 متر
+  const [radius, setRadius] = useState(0.2); // حوالي 200 متر
 
   useEffect(() => {
     setPolygonPoints(
@@ -33,10 +36,124 @@ const AddSchool = () => {
     );
   }, [points]);
 
+  // تنظيف المراقبة عند unmount
+  useEffect(() => {
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [watchId]);
+
   const handlePointChange = (index, field, value) => {
     const newPoints = [...points];
     newPoints[index][field] = value;
     setPoints(newPoints);
+  };
+
+  // دالة محسنة لتحديد الموقع بدقة
+  const getCurrentLocation = () => {
+    setLocationStatus('loading');
+    
+    if (!navigator.geolocation) {
+      Swal.fire('خطأ', 'المتصفح لا يدعم تحديد الموقع', 'error');
+      setLocationStatus('idle');
+      return;
+    }
+
+    Swal.fire({
+      title: 'جاري تحديد الموقع...',
+      text: 'يرجى الانتظار لتحسين الدقة',
+      icon: 'info',
+      showConfirmButton: false,
+      allowOutsideClick: false
+    });
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    };
+
+    // استخدام watchPosition للمراقبة المستمرة
+    const id = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        
+        // تحديث الموقع باستمرار
+        setCenterPoint({ 
+          x: latitude.toFixed(7), 
+          y: longitude.toFixed(7) 
+        });
+
+        // إذا وصلنا لدقة مقبولة (أقل من 20 متر)
+        if (accuracy < 20) {
+          navigator.geolocation.clearWatch(id);
+          setWatchId(null);
+          setLocationStatus('accurate');
+          setIsGPSReady(true);
+          
+          Swal.fire({
+            title: 'تم تحديد الموقع!',
+            html: `✅ تم تحديد موقعك بدقة عالية<br>الدقة: <strong>${Math.round(accuracy)} متر</strong>`,
+            icon: 'success',
+            timer: 3000
+          });
+        } else {
+          // تحديث حالة الدقة للمستخدم
+          setLocationStatus('loading');
+          console.log(`جاري تحسين الدقة: ${Math.round(accuracy)} متر`);
+        }
+      },
+      (error) => {
+        navigator.geolocation.clearWatch(id);
+        setWatchId(null);
+        setLocationStatus('idle');
+        
+        let errorMessage = 'حدث خطأ في تحديد الموقع';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'تم رفض الإذن لتحديد الموقع. يرجى تفعيل صلاحيات الموقع';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'معلومات الموقع غير متاحة. تأكد من تفعيل GPS';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'انتهت مهلة طلب الموقع. حاول مرة أخرى';
+            break;
+        }
+        
+        Swal.fire('خطأ', errorMessage, 'error');
+      },
+      options
+    );
+
+    setWatchId(id);
+
+    // إيقاف تلقائي بعد 20 ثانية إذا لم تتحسن الدقة
+    setTimeout(() => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        setWatchId(null);
+        if (locationStatus === 'loading') {
+          setLocationStatus('inaccurate');
+          Swal.fire({
+            title: 'دقة محدودة',
+            text: 'تم تحديد الموقع بدقة محدودة. يمكنك استخدامه أو المحاولة مرة أخرى',
+            icon: 'warning',
+            confirmButtonText: 'حسناً'
+          });
+        }
+      }
+    }, 20000);
+  };
+
+  // إيقاف تتبع الموقع
+  const stopLocationTracking = () => {
+    if (watchId) {
+      navigator.geolocation.clearWatch(watchId);
+      setWatchId(null);
+    }
   };
 
   // دالة لتوليد 5 نقاط حول نقطة مركزية مع إغلاق المضلع
@@ -56,13 +173,11 @@ const AddSchool = () => {
     const radiusKm = radius;
     
     const generatedPoints = [];
-    const radiusInDegrees = radiusKm / 111.32; // 111.32 كم لكل درجة
+    const radiusInDegrees = radiusKm / 111.32;
 
-    // توليد 4 نقاط فقط + النقطة الخامسة ستكون مثل الأولى
     for (let i = 0; i < 4; i++) {
-      const angle = (i * 2 * Math.PI) / 4; // 4 نقاط للمستطيل
+      const angle = (i * 2 * Math.PI) / 4;
       
-      // حساب الإحداثيات بدقة 7 خانات عشرية
       const lat = centerLat + (radiusInDegrees * Math.sin(angle));
       const lng = centerLng + (radiusInDegrees * Math.cos(angle));
       
@@ -72,7 +187,6 @@ const AddSchool = () => {
       });
     }
 
-    // النقطة الخامسة = النقطة الأولى لإغلاق المضلع
     generatedPoints.push({
       x: generatedPoints[0].x,
       y: generatedPoints[0].y
@@ -107,29 +221,23 @@ const AddSchool = () => {
     
     const radiusInDegrees = radiusKm / 111.32;
 
-    // نقاط المستطيل (شمال غرب، شمال شرق، جنوب شرق، جنوب غرب، والعودة لشمال غرب)
     const rectanglePoints = [
-      // النقطة 1: شمال غرب
       {
         x: (centerLat + radiusInDegrees).toFixed(7),
         y: (centerLng - radiusInDegrees).toFixed(7)
       },
-      // النقطة 2: شمال شرق
       {
         x: (centerLat + radiusInDegrees).toFixed(7),
         y: (centerLng + radiusInDegrees).toFixed(7)
       },
-      // النقطة 3: جنوب شرق
       {
         x: (centerLat - radiusInDegrees).toFixed(7),
         y: (centerLng + radiusInDegrees).toFixed(7)
       },
-      // النقطة 4: جنوب غرب
       {
         x: (centerLat - radiusInDegrees).toFixed(7),
         y: (centerLng - radiusInDegrees).toFixed(7)
       },
-      // النقطة 5: شمال غرب (إغلاق المضلع - نفس النقطة الأولى)
       {
         x: (centerLat + radiusInDegrees).toFixed(7),
         y: (centerLng - radiusInDegrees).toFixed(7)
@@ -158,6 +266,7 @@ const AddSchool = () => {
         const lng = parseFloat(match[2]).toFixed(7);
         
         setCenterPoint({ x: lat, y: lng });
+        setLocationStatus('accurate');
         
         Swal.fire({
           title: 'تم النسخ!',
@@ -233,7 +342,6 @@ const AddSchool = () => {
         cancelButtonText: 'لا، سأصلحه يدوياً'
       }).then((result) => {
         if (result.isConfirmed) {
-          // إصلاح تلقائي: جعل النقطة الأخيرة مثل الأولى
           const fixedPoints = [...points];
           fixedPoints[4] = { x: points[0].x, y: points[0].y };
           setPoints(fixedPoints);
@@ -244,10 +352,7 @@ const AddSchool = () => {
 
     try {
       await addPlace(schoolName, polygonPoints);
-      
-      // إعادة تعيين النموذج
       resetForm();
-
       Swal.fire({
         title: 'تمت الإضافة!',
         text: 'تم إضافة المدرسة بنجاح',
@@ -279,9 +384,10 @@ const AddSchool = () => {
     setRadius(0.2);
     setAdminPassword("");
     setFlag(false);
+    setLocationStatus('idle');
+    stopLocationTracking();
   };
 
-  // دالة للتحقق مما إذا كان المضلع مغلقاً
   const isPolygonClosed = points[0].x && points[0].y && points[4].x && points[4].y && 
                          points[0].x === points[4].x && points[0].y === points[4].y;
 
@@ -382,6 +488,39 @@ const AddSchool = () => {
                 <div className="card border-0 bg-light mb-4">
                   <div className="card-body">
                     <h5 className="fw-bold text-primary mb-3">مولد النقاط التلقائي</h5>
+                    
+                    {/* زر تحديد الموقع المحسن */}
+                    <div className="mb-3">
+                      <button
+                        type="button"
+                        className={`btn w-100 ${
+                          locationStatus === 'accurate' ? 'btn-success' :
+                          locationStatus === 'inaccurate' ? 'btn-warning' :
+                          locationStatus === 'loading' ? 'btn-secondary' :
+                          'btn-primary'
+                        }`}
+                        onClick={getCurrentLocation}
+                        disabled={locationStatus === 'loading'}
+                      >
+                        {locationStatus === 'loading' && '⏳ جاري تحديد الموقع...'}
+                        {locationStatus === 'accurate' && '✅ تم تحديد الموقع بدقة'}
+                        {locationStatus === 'inaccurate' && '⚠️ موقع تقريبي'}
+                        {locationStatus === 'idle' && '📍 احصل على موقعي الحالي'}
+                      </button>
+                      
+                      {locationStatus === 'loading' && (
+                        <div className="mt-2">
+                          <div className="progress">
+                            <div 
+                              className="progress-bar progress-bar-striped progress-bar-animated" 
+                              style={{width: '100%'}}
+                            ></div>
+                          </div>
+                          <small className="text-muted">جاري تحسين دقة الموقع... يرجى الانتظار</small>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="row g-3">
                       <div className="col-md-4">
                         <label className="form-label fw-semibold text-dark">خط العرض (Latitude)</label>
@@ -407,9 +546,9 @@ const AddSchool = () => {
                         <label className="form-label fw-semibold text-dark">نصف القطر (كم)</label>
                         <input
                           type="number"
-                          step="0.2"
-                          min="0.2"
-                          max="1"
+                          step="0.1"
+                          min="0.1"
+                          max="2"
                           className="form-control"
                           value={radius}
                           onChange={(e) => setRadius(parseFloat(e.target.value))}
@@ -424,6 +563,7 @@ const AddSchool = () => {
                             type="button" 
                             className="btn btn-success"
                             onClick={generateRectanglePoints}
+                            disabled={!centerPoint.x || !centerPoint.y}
                           >
                             توليد مستطيل مغلق
                           </button>
@@ -431,6 +571,7 @@ const AddSchool = () => {
                             type="button" 
                             className="btn btn-outline-success"
                             onClick={generatePointsAroundCenter}
+                            disabled={!centerPoint.x || !centerPoint.y}
                           >
                             توليد دائري مغلق
                           </button>
@@ -442,7 +583,7 @@ const AddSchool = () => {
                             نسخ من خرائط جوجل
                           </button>
                           <small className="text-muted align-self-center">
-                            نصف القطر الافتراضي: 0.2 كم (≈100 متر)
+                            نصف القطر الافتراضي: 0.2 كم (≈200 متر)
                           </small>
                         </div>
                       </div>
@@ -568,11 +709,11 @@ const AddSchool = () => {
             <div className="card-body">
               <h6 className="card-title fw-bold mb-3">تعليمات هامة:</h6>
               <ul className="list-unstyled mb-0">
-                <li className="mb-2">• <strong>النقطة الخامسة يجب أن تكون مطابقة تماماً للنقطة الأولى</strong> لإغلاق المضلع</li>
-                <li className="mb-2">• استخدم -توليد مستطيل مغلق- للحصول على شكل مستطيل متوازي</li>
-                <li className="mb-2">• استخدم -توليد دائري مغلق- للحصول على شكل دائري تقريبي</li>
-                <li className="mb-2">• لنسخ من خرائط جوجل: انقر بزر الماوس الأيمن على الموقع → نسخ الإحداثيات</li>
-                <li>• سيتم تعطيل زر الإضافة حتى يتم إغلاق المضلع بشكل صحيح</li>
+                <li className="mb-2">• <strong>انقر على "احصل على موقعي الحالي" وسيتم تحسين الدقة تلقائياً</strong></li>
+                <li className="mb-2">• النقطة الخامسة يجب أن تكون مطابقة تماماً للنقطة الأولى لإغلاق المضلع</li>
+                <li className="mb-2">• استخدم "توليد مستطيل مغلق" للحصول على شكل مستطيل متوازي</li>
+                <li className="mb-2">• استخدم "توليد دائري مغلق" للحصول على شكل دائري تقريبي</li>
+                <li>• لنسخ من خرائط جوجل: انقر بزر الماوس الأيمن على الموقع → نسخ الإحداثيات</li>
               </ul>
             </div>
           </div>

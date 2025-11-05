@@ -9,7 +9,13 @@ import { format } from 'date-fns';
 import MySwiper from "./components/swipper";
 import employeeLogIn from "../lib/emloyeeLogIn";
 
-// ... your image imports ...
+// Image imports - UNCOMMENT these or provide actual image paths
+import erp1 from '../../public/erp1.jpg';
+import erp2 from '../../public/erp2.jpg';
+import erp3 from '../../public/erp3.jpg';
+import erp4 from '../../public/erp4.jpg';
+import erp5 from '../../public/erp5.jpg';
+import sign from '../../public/sign.jpg';
 
 export default function AttendanceSystem() {
   // State management
@@ -36,7 +42,7 @@ export default function AttendanceSystem() {
     userDecisionTimeout: 10000,
   });
 
-  // Memoized values
+  // Memoized values - FIXED: Use the actual imported images
   const images = useMemo(() => [erp1, erp2, erp3, erp4, erp5], []);
 
   // Arabic text normalization function
@@ -148,7 +154,7 @@ export default function AttendanceSystem() {
     });
   }, []);
 
-  // Handle input change - REMOVED real-time normalization to allow free typing
+  // Handle input change - allow free typing
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     
@@ -169,7 +175,7 @@ export default function AttendanceSystem() {
     setLocationAccuracy(null);
 
     try {
-      // REMOVED Arabic validation completely - allow any text with spaces
+      // No Arabic validation - allow any text with spaces
       const username = logIn.username.trim();
       const password = logIn.password.trim();
       
@@ -232,7 +238,7 @@ export default function AttendanceSystem() {
 
   return (
     <div className="bg-light min-vh-100" dir="rtl">
-      {/* Header and other JSX remains the same */}
+      {/* Header */}
       <nav className="navbar navbar-light bg-white shadow-sm border-bottom">
         <div className="container">
           <div className="d-flex align-items-center">
@@ -384,7 +390,6 @@ export default function AttendanceSystem() {
             </div>
           </div>
 
-          {/* باقي الكود يبقى كما هو */}
           {/* Info Section */}
           <div className="col-lg-6">
             <div className="card shadow-lg border-0 h-100">
@@ -451,7 +456,46 @@ export default function AttendanceSystem() {
           </div>
         </div>
 
-        {/* باقي الكود يبقى كما هو */}
+        {/* Quick Stats */}
+        <div className="row mt-5">
+          <div className="col-md-3">
+            <div className="card border-0 bg-primary text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">{user.length}</div>
+                <div className="small">موظف مسجل</div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="card border-0 bg-success text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">دقة</div>
+                <div className="small">تصل إلى 10 متر</div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="card border-0 bg-info text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">تطبيع</div>
+                <div className="small">النص العربي</div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3">
+            <div className="card border-0 bg-warning text-white text-center">
+              <div className="card-body py-3">
+                <div className="h4 fw-bold mb-1">آمن</div>
+                <div className="small">وحماية بيانات</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-5 pt-4 border-top">
+          <p className="text-muted mb-0">© 2024 نظام تسجيل الحضور الجغرافي. جميع الحقوق محفوظة.</p>
+        </div>
       </div>
     </div>
   );

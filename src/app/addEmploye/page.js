@@ -299,7 +299,7 @@ const AddEmploye = () => {
                       required
                     />
                     <div className="form-text text-muted">
-                      مثال: "الرياضيات" → "الرياضيات"
+                      مثال: &quot;الرياضيات&quot; → &quot;الرياضيات&quot;
                     </div>
                   </div>
 

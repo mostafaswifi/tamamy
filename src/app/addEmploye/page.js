@@ -85,16 +85,16 @@ const addEmployeeHandler = async (e) => {
   }
 
   // UPDATED: Better Arabic text validation that allows spaces
-  const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
-  if (!arabicWithSpacesRegex.test(employeeName)) {
-    Swal.fire({
-      icon: "error",
-      title: "اسم غير صالح",
-      text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
-      confirmButtonText: "حاول مرة أخرى",
-    });
-    return;
-  }
+  // const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
+  // if (!arabicWithSpacesRegex.test(employeeName)) {
+  //   Swal.fire({
+  //     icon: "error",
+  //     title: "اسم غير صالح",
+  //     text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
+  //     confirmButtonText: "حاول مرة أخرى",
+  //   });
+  //   return;
+  // }
 
   try {
     // NOW hireDate is properly defined

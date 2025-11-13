@@ -53,120 +53,65 @@ const AddEmploye = () => {
     const normalizedEmployee = {
       employeeName: normalizeArabicText(employee.employeeName),
       employeeCode: normalizeArabicText(employee.employeeCode),
-   
+      hireDate: employee.hireDate, // ADD THIS LINE
       department: normalizeArabicText(employee.department),
       jobTitle: normalizeArabicText(employee.jobTitle),
     };
 
-    // Validate required fields
-const addEmployeeHandler = async (e) => {
-  e.preventDefault();
-
-  // Normalize all text fields before validation and submission
-  const normalizedEmployee = {
-    employeeName: normalizeArabicText(employee.employeeName),
-    employeeCode: normalizeArabicText(employee.employeeCode),
-  
-    department: normalizeArabicText(employee.department),
-    jobTitle: normalizeArabicText(employee.jobTitle),
-  };
-
-  // Validate required fields - ADD hireDate HERE
-  const { employeeName, employeeCode, department, jobTitle } = normalizedEmployee;
-  
-  if (!employeeName || !employeeCode || !department || !jobTitle) {
-    Swal.fire({
-      icon: "error",
-      title: "خطأ في الإدخال",
-      text: "يرجى ملء جميع الحقول المطلوبة",
-      confirmButtonText: "حاول مرة أخرى",
-    });
-    return;
-  }
-
-  // UPDATED: Better Arabic text validation that allows spaces
-  // const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
-  // if (!arabicWithSpacesRegex.test(employeeName)) {
-  //   Swal.fire({
-  //     icon: "error",
-  //     title: "اسم غير صالح",
-  //     text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
-  //     confirmButtonText: "حاول مرة أخرى",
-  //   });
-  //   return;
-  // }
-
-  try {
-    // NOW hireDate is properly defined
-    await AddEmployee(employeeName, employeeCode, department, jobTitle);
+    // Validate required fields - include hireDate in destructuring
+    const { employeeName, employeeCode, department, jobTitle, hireDate } = normalizedEmployee;
     
-    // Reset form on success
-    setEmployee({
-      employeeName: "",
-      employeeCode: "",
-      hireDate: "",
-      department: "",
-      jobTitle: "",
-    });
-
-    Swal.fire({
-      icon: "success",
-      title: "تمت العملية بنجاح",
-      text: "تم إضافة الموجه بنجاح",
-      showConfirmButton: false,
-      timer: 1500,
-    });
-  } catch (error) {
-    console.error("Error adding employee:", error);
-    Swal.fire({
-      icon: "error",
-      title: "خطأ في الإضافة",
-      text: "حدث خطأ أثناء إضافة الموجه",
-      confirmButtonText: "حاول مرة أخرى",
-    });
-  }
-};
+    if (!employeeName || !employeeCode || !department || !jobTitle) {
+      Swal.fire({
+        icon: "error",
+        title: "خطأ في الإدخال",
+        text: "يرجى ملء جميع الحقول المطلوبة",
+        confirmButtonText: "حاول مرة أخرى",
+      });
+      return;
+    }
 
     // UPDATED: Better Arabic text validation that allows spaces
-    // const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
-    // if (!arabicWithSpacesRegex.test(employeeName)) {
-    //   Swal.fire({
-    //     icon: "error",
-    //     title: "اسم غير صالح",
-    //     text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
-    //     confirmButtonText: "حاول مرة أخرى",
-    //   });
-    //   return;
-    // }
+    const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
+    if (!arabicWithSpacesRegex.test(employeeName)) {
+      Swal.fire({
+        icon: "error",
+        title: "اسم غير صالح",
+        text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
+        confirmButtonText: "حاول مرة أخرى",
+      });
+      return;
+    }
 
-    // try {
-    //   await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
+    try {
+      // Pass all parameters including hireDate
+      await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
       
-    //   // Reset form on success
-    //   setEmployee({
-    //     employeeName: "",
-    //     employeeCode: "",
-    //     hireDate: "",
-    //     department: "",
-    //     jobTitle: "",
-    //   });
+      // Reset form on success
+      setEmployee({
+        employeeName: "",
+        employeeCode: "",
+        hireDate: "",
+        department: "",
+        jobTitle: "",
+      });
 
-    //   Swal.fire({
-    //     icon: "success",
-    //     title: "تمت العملية بنجاح",
-    //     text: "تم إضافة الموجه بنجاح",
-    //     showConfirmButton: false,
-    //     timer: 1500,
-    //   });
-    // } catch (error) {
-    //   console.error("Error adding employee:", error);
-    //   Swal.fire({
-    //     icon: "error",
-    //     title: "خطأ في الإضافة",
-    //     text: "حدث خطأ أثناء إضافة الموجه",
-    //     confirmButtonText: "حاول مرة أخرى",
-    //   });
-    // }
+      Swal.fire({
+        icon: "success",
+        title: "تمت العملية بنجاح",
+        text: "تم إضافة الموجه بنجاح",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    } catch (error) {
+      console.error("Error adding employee:", error);
+      Swal.fire({
+        icon: "error",
+        title: "خطأ في الإضافة",
+        text: "حدث خطأ أثناء إضافة الموجه",
+        confirmButtonText: "حاول مرة أخرى",
+      });
+    }
   };
 
   const handleAdminLogin = (e) => {
@@ -285,7 +230,6 @@ const addEmployeeHandler = async (e) => {
                       value={employee.employeeName}
                       onChange={(e) => handleInputChange('employeeName', e.target.value)}
                       required
-                      // REMOVED the restrictive pattern attribute
                     />
                     <div className="form-text text-muted">
                       يمكنك استخدام المسافات بين الكلمات - سيتم تطبيع النص تلقائياً عند الحفظ
@@ -324,7 +268,6 @@ const addEmployeeHandler = async (e) => {
                       value={employee.department}
                       onChange={(e) => handleInputChange('department', e.target.value)}
                       required
-                      // REMOVED the restrictive pattern attribute
                     />
                     <div className="form-text text-muted">
                       مثال: &quot;اللغة العربية&quot; → &quot;اللغه العربيه&quot;
@@ -353,7 +296,21 @@ const addEmployeeHandler = async (e) => {
                   </div>
 
                   {/* Hire Date */}
-              
+                  <div className="col-md-6">
+                    <label htmlFor="hireDate" className="form-label fw-semibold text-dark">
+                      تاريخ التعيين
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control form-control-lg"
+                      id="hireDate"
+                      value={employee.hireDate}
+                      onChange={(e) => handleInputChange('hireDate', e.target.value)}
+                    />
+                    <div className="form-text text-muted">
+                      حقل اختياري - لا يتم تطبيعه
+                    </div>
+                  </div>
                 </div>
 
                 {/* Normalization Preview */}

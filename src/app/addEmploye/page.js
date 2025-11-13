@@ -59,16 +59,73 @@ const AddEmploye = () => {
     };
 
     // Validate required fields
-    const { employeeName, employeeCode, department, jobTitle } = normalizedEmployee;
-    if (!employeeName || !employeeCode || !department || !jobTitle) {
-      Swal.fire({
-        icon: "error",
-        title: "خطأ في الإدخال",
-        text: "يرجى ملء جميع الحقول المطلوبة",
-        confirmButtonText: "حاول مرة أخرى",
-      });
-      return;
-    }
+const addEmployeeHandler = async (e) => {
+  e.preventDefault();
+
+  // Normalize all text fields before validation and submission
+  const normalizedEmployee = {
+    employeeName: normalizeArabicText(employee.employeeName),
+    employeeCode: normalizeArabicText(employee.employeeCode),
+    hireDate: employee.hireDate,
+    department: normalizeArabicText(employee.department),
+    jobTitle: normalizeArabicText(employee.jobTitle),
+  };
+
+  // Validate required fields - ADD hireDate HERE
+  const { employeeName, employeeCode, department, jobTitle, hireDate } = normalizedEmployee;
+  
+  if (!employeeName || !employeeCode || !department || !jobTitle) {
+    Swal.fire({
+      icon: "error",
+      title: "خطأ في الإدخال",
+      text: "يرجى ملء جميع الحقول المطلوبة",
+      confirmButtonText: "حاول مرة أخرى",
+    });
+    return;
+  }
+
+  // UPDATED: Better Arabic text validation that allows spaces
+  const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
+  if (!arabicWithSpacesRegex.test(employeeName)) {
+    Swal.fire({
+      icon: "error",
+      title: "اسم غير صالح",
+      text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
+      confirmButtonText: "حاول مرة أخرى",
+    });
+    return;
+  }
+
+  try {
+    // NOW hireDate is properly defined
+    await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
+    
+    // Reset form on success
+    setEmployee({
+      employeeName: "",
+      employeeCode: "",
+      hireDate: "",
+      department: "",
+      jobTitle: "",
+    });
+
+    Swal.fire({
+      icon: "success",
+      title: "تمت العملية بنجاح",
+      text: "تم إضافة الموجه بنجاح",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  } catch (error) {
+    console.error("Error adding employee:", error);
+    Swal.fire({
+      icon: "error",
+      title: "خطأ في الإضافة",
+      text: "حدث خطأ أثناء إضافة الموجه",
+      confirmButtonText: "حاول مرة أخرى",
+    });
+  }
+};
 
     // UPDATED: Better Arabic text validation that allows spaces
     const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;

@@ -53,7 +53,7 @@ const AddEmploye = () => {
     const normalizedEmployee = {
       employeeName: normalizeArabicText(employee.employeeName),
       employeeCode: normalizeArabicText(employee.employeeCode),
-      hireDate: employee.hireDate,
+   
       department: normalizeArabicText(employee.department),
       jobTitle: normalizeArabicText(employee.jobTitle),
     };
@@ -66,13 +66,13 @@ const addEmployeeHandler = async (e) => {
   const normalizedEmployee = {
     employeeName: normalizeArabicText(employee.employeeName),
     employeeCode: normalizeArabicText(employee.employeeCode),
-    hireDate: employee.hireDate,
+  
     department: normalizeArabicText(employee.department),
     jobTitle: normalizeArabicText(employee.jobTitle),
   };
 
   // Validate required fields - ADD hireDate HERE
-  const { employeeName, employeeCode, department, jobTitle, hireDate } = normalizedEmployee;
+  const { employeeName, employeeCode, department, jobTitle } = normalizedEmployee;
   
   if (!employeeName || !employeeCode || !department || !jobTitle) {
     Swal.fire({
@@ -98,7 +98,7 @@ const addEmployeeHandler = async (e) => {
 
   try {
     // NOW hireDate is properly defined
-    await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
+    await AddEmployee(employeeName, employeeCode, department, jobTitle);
     
     // Reset form on success
     setEmployee({
@@ -353,21 +353,7 @@ const addEmployeeHandler = async (e) => {
                   </div>
 
                   {/* Hire Date */}
-                  <div className="col-md-6">
-                    <label htmlFor="hireDate" className="form-label fw-semibold text-dark">
-                      تاريخ التعيين
-                    </label>
-                    <input
-                      type="date"
-                      className="form-control form-control-lg"
-                      id="hireDate"
-                      value={employee.hireDate}
-                      onChange={(e) => handleInputChange('hireDate', e.target.value)}
-                    />
-                    <div className="form-text text-muted">
-                      حقل اختياري - لا يتم تطبيعه
-                    </div>
-                  </div>
+              
                 </div>
 
                 {/* Normalization Preview */}

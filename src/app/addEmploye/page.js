@@ -139,34 +139,34 @@ const addEmployeeHandler = async (e) => {
     //   return;
     // }
 
-    try {
-      await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
+    // try {
+    //   await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
       
-      // Reset form on success
-      setEmployee({
-        employeeName: "",
-        employeeCode: "",
-        hireDate: "",
-        department: "",
-        jobTitle: "",
-      });
+    //   // Reset form on success
+    //   setEmployee({
+    //     employeeName: "",
+    //     employeeCode: "",
+    //     hireDate: "",
+    //     department: "",
+    //     jobTitle: "",
+    //   });
 
-      Swal.fire({
-        icon: "success",
-        title: "تمت العملية بنجاح",
-        text: "تم إضافة الموجه بنجاح",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-    } catch (error) {
-      console.error("Error adding employee:", error);
-      Swal.fire({
-        icon: "error",
-        title: "خطأ في الإضافة",
-        text: "حدث خطأ أثناء إضافة الموجه",
-        confirmButtonText: "حاول مرة أخرى",
-      });
-    }
+    //   Swal.fire({
+    //     icon: "success",
+    //     title: "تمت العملية بنجاح",
+    //     text: "تم إضافة الموجه بنجاح",
+    //     showConfirmButton: false,
+    //     timer: 1500,
+    //   });
+    // } catch (error) {
+    //   console.error("Error adding employee:", error);
+    //   Swal.fire({
+    //     icon: "error",
+    //     title: "خطأ في الإضافة",
+    //     text: "حدث خطأ أثناء إضافة الموجه",
+    //     confirmButtonText: "حاول مرة أخرى",
+    //   });
+    // }
   };
 
   const handleAdminLogin = (e) => {

@@ -1,61 +1,14 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import AddEmployee from "../../lib/addEmployee";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
 
 const admin = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
 
-// Database service functions
-const EmployeeService = {
-  // Add employee to database
-  async addEmployee(employeeName, employeeCode, hireDate, department, jobTitle) {
-    try {
-      const response = await fetch('/api/employees', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          employeeName,
-          employeeCode,
-          hireDate,
-          department,
-          jobTitle
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add employee');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error adding employee:', error);
-      throw error;
-    }
-  },
-
-  // Get all employees
-  async getAllEmployees() {
-    try {
-      const response = await fetch('/api/employees');
-      if (!response.ok) {
-        throw new Error('Failed to fetch employees');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching employees:', error);
-      throw error;
-    }
-  }
-};
-
 const AddEmploye = () => {
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [isLocked, setIsLocked] = useState(false);
   const [employee, setEmployee] = useState({
     employeeName: "",
     employeeCode: "",
@@ -66,7 +19,7 @@ const AddEmploye = () => {
 
   const router = useRouter();
 
-  // Enhanced Arabic text normalization function
+  // Updated Arabic text normalization function
   const normalizeArabicText = (text) => {
     if (!text || typeof text !== 'string') return '';
     
@@ -84,60 +37,17 @@ const AddEmploye = () => {
       .trim();                          // Remove spaces from start and end
   };
 
-  // Enhanced Arabic text validation
-  const validateArabicText = (text) => {
-    if (!text || typeof text !== 'string') return false;
-    
-    // Allow Arabic characters, spaces, numbers, and common punctuation
-    const arabicExtendedRegex = /^[\u0600-\u06FF\s\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF0-9\-_.,;:!?()]+$/;
-    
-    return arabicExtendedRegex.test(text);
-  };
-
-  // Input length validation
-  const validateInputLength = (text, fieldName, maxLength = 100) => {
-    if (text.length > maxLength) {
-      Swal.fire({
-        icon: "error",
-        title: "النص طويل جداً",
-        text: `${fieldName} يجب أن لا يتجاوز ${maxLength} حرف`,
-        confirmButtonText: "حاول مرة أخرى",
-      });
-      return false;
-    }
-    return true;
-  };
-
-  // Form validation
-  const validateForm = (employeeData) => {
-    const errors = [];
-    
-    if (!employeeData.employeeName.trim()) errors.push("اسم الموجه مطلوب");
-    if (!employeeData.employeeCode.trim()) errors.push("كود الموجه مطلوب");
-    if (!employeeData.department.trim()) errors.push("المادة مطلوبة");
-    if (!employeeData.jobTitle.trim()) errors.push("المسمى الوظيفي مطلوب");
-    
-    if (employeeData.hireDate) {
-      const hireDate = new Date(employeeData.hireDate);
-      const today = new Date();
-      if (hireDate > today) errors.push("تاريخ التعيين لا يمكن أن يكون في المستقبل");
-    }
-    
-    return errors;
-  };
-
-  // Handle input change
+  // Handle input change with auto-normalization
   const handleInputChange = (field, value) => {
+    // Don't normalize here - let user type freely, only normalize on submit
     setEmployee(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  // Add employee handler
   const addEmployeeHandler = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
 
     // Normalize all text fields before validation and submission
     const normalizedEmployee = {
@@ -149,7 +59,7 @@ const AddEmploye = () => {
     };
 
     // Validate required fields
-    const { employeeName, employeeCode, department, jobTitle, hireDate } = normalizedEmployee;
+    const { employeeName, employeeCode, department, jobTitle } = normalizedEmployee;
     if (!employeeName || !employeeCode || !department || !jobTitle) {
       Swal.fire({
         icon: "error",
@@ -157,45 +67,23 @@ const AddEmploye = () => {
         text: "يرجى ملء جميع الحقول المطلوبة",
         confirmButtonText: "حاول مرة أخرى",
       });
-      setIsLoading(false);
       return;
     }
 
-    // Arabic text validation
-    if (!validateArabicText(employeeName)) {
+    // UPDATED: Better Arabic text validation that allows spaces
+    const arabicWithSpacesRegex = /^[\u0600-\u06FF\s]+$/;
+    if (!arabicWithSpacesRegex.test(employeeName)) {
       Swal.fire({
         icon: "error",
         title: "اسم غير صالح",
         text: "يرجى إدخال اسم صحيح باللغة العربية (يمكن استخدام المسافات بين الكلمات)",
         confirmButtonText: "حاول مرة أخرى",
       });
-      setIsLoading(false);
-      return;
-    }
-
-    // Input length validation
-    if (!validateInputLength(employeeName, "اسم الموجه", 50) || 
-        !validateInputLength(department, "المادة", 30)) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Form validation
-    const validationErrors = validateForm(normalizedEmployee);
-    if (validationErrors.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "خطأ في البيانات",
-        html: validationErrors.map(error => `<div>• ${error}</div>`).join(''),
-        confirmButtonText: "حاول مرة أخرى",
-      });
-      setIsLoading(false);
       return;
     }
 
     try {
-      // Call the database service
-      await EmployeeService.addEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
+      await AddEmployee(employeeName, employeeCode, hireDate, department, jobTitle);
       
       // Reset form on success
       setEmployee({
@@ -218,35 +106,17 @@ const AddEmploye = () => {
       Swal.fire({
         icon: "error",
         title: "خطأ في الإضافة",
-        text: "حدث خطأ أثناء إضافة الموجه. يرجى المحاولة مرة أخرى.",
+        text: "حدث خطأ أثناء إضافة الموجه",
         confirmButtonText: "حاول مرة أخرى",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleAdminLogin = (e) => {
     const inputPassword = e.target.value;
     setPassword(inputPassword);
-    
-    if (isLocked) return;
-    
     if (inputPassword === admin) {
       setIsAuthenticated(true);
-      setLoginAttempts(0);
-    } else if (inputPassword.length >= admin?.length) {
-      const newAttempts = loginAttempts + 1;
-      setLoginAttempts(newAttempts);
-      
-      if (newAttempts >= 3) {
-        setIsLocked(true);
-        setTimeout(() => {
-          setIsLocked(false);
-          setLoginAttempts(0);
-          setPassword("");
-        }, 30000); // Lock for 30 seconds
-      }
     }
   };
 
@@ -268,25 +138,7 @@ const AddEmploye = () => {
   const logoutHandler = () => {
     setIsAuthenticated(false);
     setPassword("");
-    setLoginAttempts(0);
-    setIsLocked(false);
   };
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.ctrlKey && e.key === 'Enter' && isAuthenticated) {
-        const form = document.querySelector('form');
-        if (form) form.requestSubmit();
-      }
-      if (e.key === 'Escape') {
-        resetForm();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isAuthenticated]);
 
   return (
     <div className="bg-light min-vh-100" dir="rtl">
@@ -330,18 +182,7 @@ const AddEmploye = () => {
                       placeholder="أدخل كلمة مرور المسؤول"
                       value={password}
                       onChange={handleAdminLogin}
-                      disabled={isLocked}
                     />
-                    {isLocked && (
-                      <div className="alert alert-warning mt-2 mb-0 py-2">
-                        <small>تم تعطيل الدخول مؤقتاً بسبب عدة محاولات خاطئة. يرجى المحاولة بعد 30 ثانية.</small>
-                      </div>
-                    )}
-                    {loginAttempts > 0 && !isLocked && (
-                      <div className="text-warning mt-1 small">
-                        محاولات خاطئة: {loginAttempts} / 3
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -387,6 +228,7 @@ const AddEmploye = () => {
                       value={employee.employeeName}
                       onChange={(e) => handleInputChange('employeeName', e.target.value)}
                       required
+                      // REMOVED the restrictive pattern attribute
                     />
                     <div className="form-text text-muted">
                       يمكنك استخدام المسافات بين الكلمات - سيتم تطبيع النص تلقائياً عند الحفظ
@@ -425,6 +267,7 @@ const AddEmploye = () => {
                       value={employee.department}
                       onChange={(e) => handleInputChange('department', e.target.value)}
                       required
+                      // REMOVED the restrictive pattern attribute
                     />
                     <div className="form-text text-muted">
                       مثال: &quot;اللغة العربية&quot; → &quot;اللغه العربيه&quot;
@@ -485,12 +328,6 @@ const AddEmploye = () => {
                           <div className="col-md-6">
                             <strong>المادة:</strong> {normalizeArabicText(employee.department) || '---'}
                           </div>
-                          <div className="col-md-6">
-                            <strong>الكود:</strong> {normalizeArabicText(employee.employeeCode) || '---'}
-                          </div>
-                          <div className="col-md-6">
-                            <strong>المسمى:</strong> {normalizeArabicText(employee.jobTitle) || '---'}
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -504,19 +341,9 @@ const AddEmploye = () => {
                       <button 
                         type="submit" 
                         className="btn btn-primary btn-lg fw-bold px-5"
-                        disabled={isLoading}
                       >
-                        {isLoading ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2"></span>
-                            جاري الإضافة...
-                          </>
-                        ) : (
-                          <>
-                            <i className="bi bi-person-plus me-2"></i>
-                            إضافة الموجه
-                          </>
-                        )}
+                        <i className="bi bi-person-plus me-2"></i>
+                        إضافة الموجه
                       </button>
                       <button 
                         type="button" 
@@ -530,7 +357,6 @@ const AddEmploye = () => {
                         type="button" 
                         className="btn btn-outline-secondary btn-lg"
                         onClick={resetForm}
-                        disabled={isLoading}
                       >
                         <i className="bi bi-arrow-clockwise me-2"></i>
                         مسح النموذج

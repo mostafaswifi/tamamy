@@ -28,8 +28,8 @@ const SignedInInfo = () => {
   // Memoized employee data
   const employeeData = useMemo(() => ({
     employeeId: params.signedInInfo?.[1] || '',
-    cordx: coords?.latitude?.toString() || params.signedInInfo?.[3] || '',
-    cordy: coords?.longitude?.toString() || params.signedInInfo?.[2] || ''
+    cordx: coords?.latitude?.toString() || params.signedInInfo?.[2] || '',
+    cordy: coords?.longitude?.toString() || params.signedInInfo?.[3] || ''
   }), [params.signedInInfo, coords])
 
   // Fetch employee data
